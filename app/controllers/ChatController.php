@@ -27,18 +27,22 @@ class ChatController {
         $school = $this->app->request()->query['school'] ?? '';
         $gender = $this->app->request()->query['gender'] ?? '';
         $perifereia = $this->app->request()->query['perifereia'] ?? '';
+        $klados = $this->app->request()->query['klados'] ?? '';
 
         // Validate inputs
         $validSchools = ['ΓΕΝΙΚΟ', 'ΕΠΑΛ'];
         $validGenders = ['Άνδρας', 'Γυναίκα'];
 
-        if (!in_array($school, $validSchools) || !in_array($gender, $validGenders) || empty($perifereia)) {
+        if (!in_array($school, $validSchools) || !in_array($gender, $validGenders) || empty($perifereia) || $klados === '') {
             $this->app->redirect('/chat');
             return;
         }
 
         // Get perifereia name
         $perifereiasName = $this->getPerifereiasName($perifereia);
+        
+        // Get klados name
+        $kladosName = $this->getKladosName($klados);
 
         // Filter the data based on school and gender
         $filteredData = $this->filterData($school, $gender);
@@ -48,6 +52,8 @@ class ChatController {
             'gender' => $gender,
             'perifereia' => $perifereia,
             'perifereiasName' => $perifereiasName,
+            'klados' => $klados,
+            'kladosName' => $kladosName,
             'filteredData' => json_encode($filteredData, JSON_UNESCAPED_UNICODE),
             'filteredDataArray' => $filteredData
         ]);
@@ -62,21 +68,25 @@ class ChatController {
         $school = $request->data->school ?? '';
         $gender = $request->data->gender ?? '';
         $perifereia = $request->data->perifereia ?? '';
+        $klados = $request->data->klados ?? '';
 
-        if (empty($message) || empty($school) || empty($gender) || empty($perifereia)) {
+        if (empty($message) || empty($school) || empty($gender) || empty($perifereia) || $klados === '') {
             $this->app->json(['error' => 'Missing required fields'], 400);
             return;
         }
 
         // Get perifereia name
         $perifereiasName = $this->getPerifereiasName($perifereia);
+        
+        // Get klados name
+        $kladosName = $this->getKladosName($klados);
 
         // Get filtered data
         $filteredData = $this->filterData($school, $gender);
 
         // Call OpenAI API
         try {
-            $response = $this->callOpenAI($message, $filteredData, $school, $gender, $perifereiasName);
+            $response = $this->callOpenAI($message, $filteredData, $school, $gender, $perifereiasName, $kladosName);
             $this->app->json(['response' => $response]);
         } catch (\Exception $e) {
             $this->app->json(['error' => 'Failed to get response: ' . $e->getMessage()], 500);
@@ -141,9 +151,24 @@ class ChatController {
     }
 
     /**
+     * Get klados name by index
+     */
+    private function getKladosName($kladosIndex) {
+        $jsonPath = __DIR__ . '/../../resources/data/klados.json';
+        $jsonContent = file_get_contents($jsonPath);
+        $kladosData = json_decode($jsonContent, true);
+
+        if (isset($kladosData[$kladosIndex])) {
+            return $kladosData[$kladosIndex];
+        }
+
+        return 'Άγνωστος Κλάδος';
+    }
+
+    /**
      * Call OpenAI API with the filtered data
      */
-    private function callOpenAI($message, $filteredData, $school, $gender, $perifereiasName) {
+    private function callOpenAI($message, $filteredData, $school, $gender, $perifereiasName, $kladosName) {
         $apiKey = $this->app->get('openai_api_key');
         
         if (empty($apiKey)) {
@@ -154,7 +179,7 @@ class ChatController {
 
         // Create a system prompt with context
         $systemPrompt = "Είσαι ένας βοηθός που βοηθά να αναλύσει δεδομένα δεξιοτήτων για αποφοίτους. ";
-        $systemPrompt .= "Τα δεδομένα αφορούν αποφοίτους από {$school}, φύλο {$gender}, στην περιφέρεια {$perifereiasName}. ";
+        $systemPrompt .= "Τα δεδομένα αφορούν αποφοίτους από {$school}, φύλο {$gender}, στην περιφέρεια {$perifereiasName}, κλάδος {$kladosName}. ";
         $systemPrompt .= "Χρησιμοποίησε τα παρακάτω δεδομένα για να απαντήσεις στις ερωτήσεις:\n\n";
         $systemPrompt .= json_encode($filteredData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 

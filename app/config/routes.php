@@ -10,7 +10,7 @@ use flight\net\Router;
  * @var Engine $app
  */
 $router->get('/', function() use ($app) {
-	$app->render('welcome', [ 'message' => 'You are gonna do great things!' ]);
+	$app->redirect('/chat');
 });
 
 $router->get('/hello-world/@name', function($name) {

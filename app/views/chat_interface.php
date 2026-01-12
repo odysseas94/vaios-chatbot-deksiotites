@@ -240,6 +240,7 @@
                 <span class="filter-badge">📚 <?php echo htmlspecialchars($school); ?></span>
                 <span class="filter-badge">👤 <?php echo htmlspecialchars($gender); ?></span>
                 <span class="filter-badge">📍 <?php echo htmlspecialchars($perifereiasName); ?></span>
+                <span class="filter-badge">💼 <?php echo htmlspecialchars($kladosName); ?></span>
             </div>
         </div>
 
@@ -247,7 +248,7 @@
             <div class="message bot">
                 <div class="message-bubble">
                     Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με τις δεξιότητες των αποφοίτων.
-                    Ρώτησέ με οτιδήποτε σχετικά με τα δεδομένα για <?php echo htmlspecialchars($school); ?>, <?php echo htmlspecialchars($gender); ?> στην περιφέρεια <?php echo htmlspecialchars($perifereiasName); ?>.
+                    Ρώτησέ με οτιδήποτε σχετικά με τα δεδομένα για <?php echo htmlspecialchars($school); ?>, <?php echo htmlspecialchars($gender); ?> στην περιφέρεια <?php echo htmlspecialchars($perifereiasName); ?>, κλάδος <?php echo htmlspecialchars($kladosName); ?>.
                 </div>
             </div>
             <div class="typing-indicator" id="typingIndicator">
@@ -282,6 +283,7 @@
         const school = <?php echo json_encode($school); ?>;
         const gender = <?php echo json_encode($gender); ?>;
         const perifereia = <?php echo json_encode($perifereia); ?>;
+        const klados = <?php echo json_encode($klados); ?>;
 
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
@@ -341,7 +343,8 @@
                         message: message,
                         school: school,
                         gender: gender,
-                        perifereia: perifereia
+                        perifereia: perifereia,
+                        klados: klados
                     })
                 });
 

@@ -122,7 +122,7 @@
         <p class="subtitle">Επιλέξτε τα κριτήρια φιλτραρίσματος</p>
 
         <div class="info-box">
-            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο και την περιφέρεια για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
+            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο, την περιφέρεια και τον κλάδο για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
         </div>
 
         <form method="GET" action="/chat/interface" id="filterForm">
@@ -165,6 +165,22 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label for="klados">Κλάδος:</label>
+                <select name="klados" id="klados" required>
+                    <option value="">-- Επιλέξτε Κλάδο --</option>
+                    <?php
+                    $kladosPath = __DIR__ . '/../../resources/data/klados.json';
+                    $kladosData = json_decode(file_get_contents($kladosPath), true);
+                    
+                    foreach ($kladosData as $index => $kladosName) {
+                        echo '<option value="' . $index . '">' 
+                             . htmlspecialchars($kladosName) . '</option>';
+                    }
+                    ?>
+                </select>
+            </div>
+
             <button type="submit">Συνέχεια στο Chat</button>
         </form>
     </div>
@@ -175,8 +191,9 @@
             const school = document.getElementById('school').value;
             const gender = document.getElementById('gender').value;
             const perifereia = document.getElementById('perifereia').value;
+            const klados = document.getElementById('klados').value;
 
-            if (!school || !gender || !perifereia) {
+            if (!school || !gender || !perifereia || !klados) {
                 e.preventDefault();
                 alert('Παρακαλώ επιλέξτε όλα τα πεδία');
             }
