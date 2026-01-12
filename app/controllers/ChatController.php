@@ -5,25 +5,29 @@ namespace app\controllers;
 use flight\Engine;
 use OpenAI;
 
-class ChatController {
+class ChatController
+{
 
     protected Engine $app;
-    
-    public function __construct(Engine $app) {
+
+    public function __construct(Engine $app)
+    {
         $this->app = $app;
     }
 
     /**
      * Display the form for filtering
      */
-    public function showForm() {
+    public function showForm()
+    {
         $this->app->render('chat_form');
     }
 
     /**
      * Display the chat interface with filtered data
      */
-    public function showChat() {
+    public function showChat()
+    {
         $school = $this->app->request()->query['school'] ?? '';
         $gender = $this->app->request()->query['gender'] ?? '';
         $perifereia = $this->app->request()->query['perifereia'] ?? '';
@@ -40,12 +44,13 @@ class ChatController {
 
         // Get perifereia name
         $perifereiasName = $this->getPerifereiasName($perifereia);
-        
+
         // Get klados name
         $kladosName = $this->getKladosName($klados);
 
-        // Filter the data based on school and gender
-        $filteredData = $this->filterData($school, $gender);
+        // Filter the data based on all parameters
+        $filteredData = $this->filterData($school, $gender, $perifereia, $klados);
+    
 
         $this->app->render('chat_interface', [
             'school' => $school,
@@ -62,7 +67,8 @@ class ChatController {
     /**
      * Handle chat messages via AJAX
      */
-    public function handleMessage() {
+    public function handleMessage()
+    {
         $request = $this->app->request();
         $message = $request->data->message ?? '';
         $school = $request->data->school ?? '';
@@ -77,12 +83,13 @@ class ChatController {
 
         // Get perifereia name
         $perifereiasName = $this->getPerifereiasName($perifereia);
-        
+
         // Get klados name
         $kladosName = $this->getKladosName($klados);
 
         // Get filtered data
-        $filteredData = $this->filterData($school, $gender);
+        $filteredData = $this->filterData($school, $gender, $perifereia, $klados);
+  
 
         // Call OpenAI API
         try {
@@ -94,12 +101,28 @@ class ChatController {
     }
 
     /**
-     * Filter the JSON data based on school and gender
+     * Filter the JSON data based on school, gender, perifereia and klados
      */
-    private function filterData($school, $gender) {
+    private function filterData($school, $gender, $perifereia = null, $klados = null)
+    {
         $jsonPath = __DIR__ . '/../../resources/data/combined_deksiotites.json';
         $jsonContent = file_get_contents($jsonPath);
+
+        // Ensure UTF-8 encoding
+        $jsonContent = mb_convert_encoding($jsonContent, 'UTF-8', 'UTF-8');
+
         $data = json_decode($jsonContent, true);
+
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('JSON decode error: ' . json_last_error_msg());
+        }
+
+        // Get klados name if index provided
+        $kladosName = null;
+        if ($klados !== null) {
+            $kladosName = $this->getKladosName($klados);
+        }
 
         $filteredData = [];
 
@@ -108,25 +131,58 @@ class ChatController {
             $shouldInclude = false;
 
             if ($school === 'ΓΕΝΙΚΟ') {
-                // Include sections for ΓΕΛ (General High School)
-                if (strpos($sectionName, 'ΓΕΛ') !== false || 
-                    strpos($sectionName, 'ΓΕΝΙΚΟ') !== false ||
-                    (strpos($sectionName, 'ΕΠΑΛ') === false && strpos($sectionName, 'δεξιοτήτων') !== false)) {
+                // For ΓΕΝΙΚΟ (ΓΕΛ): Exclude any section that contains "ΕΠΑΛ" (unless it's "ΓΕΛ - ΕΠΑΛ")
+                if (strpos($sectionName, 'ΓΕΛ - ΕΠΑΛ') !== false) {
+                    // Include shared ΓΕΛ - ΕΠΑΛ sections
+                    $shouldInclude = true;
+                } elseif (strpos($sectionName, 'ΕΠΑΛ') === false) {
+                    // Include sections that don't contain "ΕΠΑΛ" at all
                     $shouldInclude = true;
                 }
             } elseif ($school === 'ΕΠΑΛ') {
-                // Include sections for ΕΠΑΛ (Vocational High School)
-                if (strpos($sectionName, 'ΕΠΑΛ') !== false ||
-                    (strpos($sectionName, 'ΓΕΛ') === false && strpos($sectionName, 'δεξιοτήτων') !== false)) {
+                // For ΕΠΑΛ: Exclude any section that contains "ΓΕΛ" (unless it's "ΓΕΛ - ΕΠΑΛ")
+                if (strpos($sectionName, 'ΓΕΛ - ΕΠΑΛ') !== false) {
+                    // Include shared ΓΕΛ - ΕΠΑΛ sections
                     $shouldInclude = true;
+                } elseif (strpos($sectionName, 'ΓΕΛ') === false || strpos($sectionName, 'ΕΠΑΛ') !== false) {
+                    // Include sections that contain "ΕΠΑΛ" or don't contain "ΓΕΛ"
+                    if (strpos($sectionName, 'ΕΠΑΛ') !== false || strpos($sectionName, 'ΓΕΛ') === false) {
+                        $shouldInclude = true;
+                    }
                 }
             }
 
-            // If the section should be included, filter by gender if applicable
-            if ($shouldInclude) {
-                // For now, we include all data as the JSON doesn't seem to have gender-specific fields
-                // You can enhance this later if gender-specific data exists
-                $filteredData[$sectionName] = $sectionData;
+            if ($shouldInclude && is_array($sectionData)) {
+                $filteredSection = [];
+
+                foreach ($sectionData as $item) {
+
+                    $found = false;
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    // If klados is specified, filter columns to only include the specific klados
+                    if ($kladosName !== null) {
+
+
+                        foreach ($item as $key => $value) {
+                            if (is_string($value) && ($kladosName === $key || $value === $kladosName)) {
+                                $found = true;
+                            }
+                        }
+
+                        if ($found)
+                            $filteredSection[] = $this->cleanArrayUtf8($item);
+                    } else {
+                        // No klados filter, include all data but clean it
+                        $filteredSection[] = $this->cleanArrayUtf8($item);
+                    }
+                }
+
+                if (!empty($filteredSection)) {
+                    $filteredData[$sectionName] = $filteredSection;
+                }
             }
         }
 
@@ -136,7 +192,8 @@ class ChatController {
     /**
      * Get perifereia name by ID
      */
-    private function getPerifereiasName($perifereiasId) {
+    private function getPerifereiasName($perifereiasId)
+    {
         $jsonPath = __DIR__ . '/../../resources/data/perifereia.json';
         $jsonContent = file_get_contents($jsonPath);
         $perifereiasData = json_decode($jsonContent, true);
@@ -153,7 +210,8 @@ class ChatController {
     /**
      * Get klados name by index
      */
-    private function getKladosName($kladosIndex) {
+    private function getKladosName($kladosIndex)
+    {
         $jsonPath = __DIR__ . '/../../resources/data/klados.json';
         $jsonContent = file_get_contents($jsonPath);
         $kladosData = json_decode($jsonContent, true);
@@ -168,9 +226,10 @@ class ChatController {
     /**
      * Call OpenAI API with the filtered data
      */
-    private function callOpenAI($message, $filteredData, $school, $gender, $perifereiasName, $kladosName) {
+    private function callOpenAI($message, $filteredData, $school, $gender, $perifereiasName, $kladosName)
+    {
         $apiKey = $this->app->get('openai_api_key');
-        
+
         if (empty($apiKey)) {
             throw new \Exception('OpenAI API key not configured');
         }
@@ -181,15 +240,23 @@ class ChatController {
         $systemPrompt = "Είσαι ένας βοηθός που βοηθά να αναλύσει δεδομένα δεξιοτήτων για αποφοίτους. ";
         $systemPrompt .= "Τα δεδομένα αφορούν αποφοίτους από {$school}, φύλο {$gender}, στην περιφέρεια {$perifereiasName}, κλάδος {$kladosName}. ";
         $systemPrompt .= "Χρησιμοποίησε τα παρακάτω δεδομένα για να απαντήσεις στις ερωτήσεις:\n\n";
-        $systemPrompt .= json_encode($filteredData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+        // Encode with proper UTF-8 handling and validation
+        $jsonData = json_encode($filteredData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
+
+        if ($jsonData === false) {
+            throw new \Exception('Failed to encode data: ' . json_last_error_msg());
+        }
+
+        $systemPrompt .= $jsonData;
 
         // Limit the context size if it's too large
         if (strlen($systemPrompt) > 12000) {
-            $systemPrompt = substr($systemPrompt, 0, 12000) . "\n... (δεδομένα περικομμένα λόγω μεγέθους)";
+            $systemPrompt = mb_substr($systemPrompt, 0, 12000, 'UTF-8') . "\n... (δεδομένα περικομμένα λόγω μεγέθους)";
         }
 
         $response = $client->chat()->create([
-            'model' => 'gpt-3.5-turbo',
+            'model' => 'gpt-4o-mini',
             'messages' => [
                 ['role' => 'system', 'content' => $systemPrompt],
                 ['role' => 'user', 'content' => $message]
@@ -199,5 +266,45 @@ class ChatController {
         ]);
 
         return $response->choices[0]->message->content;
+    }
+
+    /**
+     * Clean a string to ensure valid UTF-8 encoding
+     */
+    private function cleanUtf8($string)
+    {
+        if (!is_string($string)) {
+            return $string;
+        }
+
+        // Remove invalid UTF-8 characters
+        $string = mb_convert_encoding($string, 'UTF-8', 'UTF-8');
+
+        // Remove null bytes and other control characters except newlines and tabs
+        $string = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $string);
+
+        return $string;
+    }
+
+    /**
+     * Clean all strings in an array recursively
+     */
+    private function cleanArrayUtf8($array)
+    {
+        if (!is_array($array)) {
+            return $this->cleanUtf8($array);
+        }
+
+        $cleaned = [];
+        foreach ($array as $key => $value) {
+            $cleanKey = $this->cleanUtf8($key);
+            if (is_array($value)) {
+                $cleaned[$cleanKey] = $this->cleanArrayUtf8($value);
+            } else {
+                $cleaned[$cleanKey] = $this->cleanUtf8($value);
+            }
+        }
+
+        return $cleaned;
     }
 }
