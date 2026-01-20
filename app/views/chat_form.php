@@ -122,7 +122,7 @@
         <p class="subtitle">Επιλέξτε τα κριτήρια φιλτραρίσματος</p>
 
         <div class="info-box">
-            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο, την περιφέρεια και τον κλάδο για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
+            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο και την περιφέρεια για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
         </div>
 
         <form method="GET" action="/chat/interface" id="filterForm">
@@ -152,30 +152,21 @@
                     $perifereiasPath = __DIR__ . '/../../resources/data/perifereia.json';
                     $perifereiasData = json_decode(file_get_contents($perifereiasPath), true);
                     
-                    // Sort by name
-                    usort($perifereiasData, function($a, $b) {
-                        return strcmp($a['name'], $b['name']);
-                    });
-                    
-                    foreach ($perifereiasData as $perifereia) {
-                        echo '<option value="' . htmlspecialchars($perifereia['id']) . '">' 
-                             . htmlspecialchars($perifereia['name']) . '</option>';
+                    // Group by English name to avoid duplicates
+                    $uniqueRegions = [];
+                    foreach ($perifereiasData as $greekName => $englishName) {
+                        if (!isset($uniqueRegions[$englishName])) {
+                            $uniqueRegions[$englishName] = $greekName;
+                        }
                     }
-                    ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="klados">Κλάδος:</label>
-                <select name="klados" id="klados" required>
-                    <option value="">-- Επιλέξτε Κλάδο --</option>
-                    <?php
-                    $kladosPath = __DIR__ . '/../../resources/data/klados.json';
-                    $kladosData = json_decode(file_get_contents($kladosPath), true);
                     
-                    foreach ($kladosData as $index => $kladosName) {
-                        echo '<option value="' . $index . '">' 
-                             . htmlspecialchars($kladosName) . '</option>';
+                    // Sort by Greek name
+                    asort($uniqueRegions);
+                    
+                    foreach ($uniqueRegions as $englishName => $greekName) {
+                        $displayName = mb_strtoupper($greekName, 'UTF-8');
+                        echo '<option value="' . htmlspecialchars($greekName) . '">' 
+                             . htmlspecialchars($displayName) . '</option>';
                     }
                     ?>
                 </select>
@@ -191,9 +182,8 @@
             const school = document.getElementById('school').value;
             const gender = document.getElementById('gender').value;
             const perifereia = document.getElementById('perifereia').value;
-            const klados = document.getElementById('klados').value;
 
-            if (!school || !gender || !perifereia || !klados) {
+            if (!school || !gender || !perifereia) {
                 e.preventDefault();
                 alert('Παρακαλώ επιλέξτε όλα τα πεδία');
             }

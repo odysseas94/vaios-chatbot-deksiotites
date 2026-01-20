@@ -2,6 +2,7 @@
 
 use app\controllers\ApiExampleController;
 use app\controllers\ChatController;
+use app\controllers\FileUploadController;
 use flight\Engine;
 use flight\net\Router;
 
@@ -30,6 +31,16 @@ $router->group('/chat', function() use ($router, $app) {
 	$router->get('', [ $Chat_Controller, 'showForm' ]);
 	$router->get('/interface', [ $Chat_Controller, 'showChat' ]);
 	$router->post('/message', [ $Chat_Controller, 'handleMessage' ]);
+	$router->post('/clear', [ $Chat_Controller, 'clearHistory' ]);
+});
+
+// File upload routes
+$router->group('/files', function() use ($router, $app) {
+	$File_Upload_Controller = new FileUploadController($app);
+	$router->get('', [ $File_Upload_Controller, 'showUploadPage' ]);
+	$router->post('/upload', [ $File_Upload_Controller, 'uploadFiles' ]);
+	$router->get('/status', [ $File_Upload_Controller, 'getUploadedFiles' ]);
+	$router->post('/delete', [ $File_Upload_Controller, 'deleteUploadedFiles' ]);
 });
 
 // Serve static JSON data files

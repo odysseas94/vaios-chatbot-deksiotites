@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Δεξιοτήτων - Συνομιλία</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -106,6 +107,97 @@
             color: #333;
             border-bottom-left-radius: 4px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-bubble h1, .message-bubble h2, .message-bubble h3 {
+            margin-top: 12px;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .message-bubble h1 {
+            font-size: 20px;
+        }
+
+        .message-bubble h2 {
+            font-size: 18px;
+        }
+
+        .message-bubble h3 {
+            font-size: 16px;
+        }
+
+        .message-bubble ul, .message-bubble ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        .message-bubble li {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .message-bubble p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .message-bubble code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .message-bubble pre {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .message-bubble pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .message-bubble strong {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .message-bubble em {
+            font-style: italic;
+        }
+
+        .message-bubble blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+            margin: 10px 0;
+            color: #666;
+        }
+
+        .message-bubble table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .message-bubble th, .message-bubble td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .message-bubble th {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-bubble tr:nth-child(even) {
+            background: #f9f9f9;
         }
 
         .typing-indicator {
@@ -228,6 +320,32 @@
         .error-message.show {
             display: block;
         }
+
+        #clearHistoryBtn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #clearHistoryBtn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #clearHistoryBtn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -240,17 +358,14 @@
                 <span class="filter-badge">📚 <?php echo htmlspecialchars($school); ?></span>
                 <span class="filter-badge">👤 <?php echo htmlspecialchars($gender); ?></span>
                 <span class="filter-badge">📍 <?php echo htmlspecialchars($perifereiasName); ?></span>
-                <span class="filter-badge">💼 <?php echo htmlspecialchars($kladosName); ?></span>
             </div>
+            <button id="clearHistoryBtn">
+                <span>🗑️</span>
+                <span>Νέα Συνομιλία</span>
+            </button>
         </div>
 
         <div class="chat-messages" id="chatMessages">
-            <div class="message bot">
-                <div class="message-bubble">
-                    Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με τις δεξιότητες των αποφοίτων.
-                    Ρώτησέ με οτιδήποτε σχετικά με τα δεδομένα για <?php echo htmlspecialchars($school); ?>, <?php echo htmlspecialchars($gender); ?> στην περιφέρεια <?php echo htmlspecialchars($perifereiasName); ?>, κλάδος <?php echo htmlspecialchars($kladosName); ?>.
-                </div>
-            </div>
             <div class="typing-indicator" id="typingIndicator">
                 <span></span>
                 <span></span>
@@ -283,7 +398,7 @@
         const school = <?php echo json_encode($school); ?>;
         const gender = <?php echo json_encode($gender); ?>;
         const perifereia = <?php echo json_encode($perifereia); ?>;
-        const klados = <?php echo json_encode($klados); ?>;
+        const conversationHistory = <?php echo $conversationHistory ?? '[]'; ?>;
 
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
@@ -291,7 +406,14 @@
             
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = content;
+            
+            if (isUser) {
+                // User messages are plain text
+                bubbleDiv.textContent = content;
+            } else {
+                // Bot messages are markdown, parse and render as HTML
+                bubbleDiv.innerHTML = marked.parse(content);
+            }
             
             messageDiv.appendChild(bubbleDiv);
             
@@ -343,8 +465,7 @@
                         message: message,
                         school: school,
                         gender: gender,
-                        perifereia: perifereia,
-                        klados: klados
+                        perifereia: perifereia
                     })
                 });
 
@@ -368,6 +489,22 @@
             }
         }
 
+        // Load previous conversation history
+        function loadConversationHistory() {
+            // Always show welcome message first
+            addMessage('Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με τις δεξιότητες και την απασχόληση των αποφοίτων. Ρώτησέ με οτιδήποτε για ' + school + ', ' + gender + ' στην περιφέρεια ' + <?php echo json_encode($perifereiasName); ?> + '.', false);
+            
+            // Load all previous messages if they exist
+            if (conversationHistory.length > 0) {
+                conversationHistory.forEach(msg => {
+                    addMessage(msg.content, msg.role === 'user');
+                });
+            }
+            
+            // Scroll to bottom after loading
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         // Event listeners
         sendButton.addEventListener('click', sendMessage);
         
@@ -376,6 +513,31 @@
                 sendMessage();
             }
         });
+
+        // Clear history button - no confirmation
+        document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+            try {
+                await fetch('/chat/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        school: school,
+                        gender: gender,
+                        perifereia: perifereia
+                    })
+                });
+
+                // Reload the page to start fresh
+                location.reload();
+            } catch (error) {
+                showError('Σφάλμα κατά την εκκαθάριση ιστορικού');
+            }
+        });
+
+        // Load conversation history on page load
+        loadConversationHistory();
 
         // Focus input on load
         messageInput.focus();
