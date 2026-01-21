@@ -23,11 +23,12 @@ class ChatController
      */
     public function showForm()
     {
-        $this->app->render('chat_form');
+        $baseUrl = $this->app->get('flight.base_url');
+        $this->app->render('chat_form', ['baseUrl' => $baseUrl]);
     }
 
     /**
-     * Clear conversation history
+     * Clear conversation history - clears ALL chat histories from session
      */
     public function clearHistory()
     {
@@ -35,13 +36,12 @@ class ChatController
             session_start();
         }
 
-        $request = $this->app->request();
-        $school = $request->data->school ?? '';
-        $gender = $request->data->gender ?? '';
-        $perifereia = $request->data->perifereia ?? '';
-
-        $sessionKey = 'chat_history_' . md5($school . $gender . $perifereia);
-        unset($_SESSION[$sessionKey]);
+        // Clear all chat histories from the session
+        foreach ($_SESSION as $key => $value) {
+            if (strpos($key, 'chat_history_') === 0) {
+                unset($_SESSION[$key]);
+            }
+        }
 
         $this->app->json(['success' => true]);
     }
@@ -72,21 +72,19 @@ class ChatController
         // Get perifereia display name (Greek key)
         $perifereiasName = $this->getPerifereiasName($perifereia);
 
-        // Filter the data based on parameters - includes all data sources
-        $filteredData = $this->filterAllData($school, $gender, $perifereia);
-
         // Get conversation history from session
         $sessionKey = 'chat_history_' . md5($school . $gender . $perifereia);
         $conversationHistory = $_SESSION[$sessionKey] ?? [];
+
+        $baseUrl = $this->app->get('flight.base_url');
 
         $this->app->render('chat_interface', [
             'school' => $school,
             'gender' => $gender,
             'perifereia' => $perifereia,
             'perifereiasName' => $perifereiasName,
-            'filteredData' => json_encode($filteredData, JSON_UNESCAPED_UNICODE),
-            'filteredDataArray' => $filteredData,
-            'conversationHistory' => json_encode($conversationHistory, JSON_UNESCAPED_UNICODE)
+            'conversationHistory' => json_encode($conversationHistory, JSON_UNESCAPED_UNICODE),
+            'baseUrl' => $baseUrl
         ]);
     }
 
@@ -114,9 +112,6 @@ class ChatController
         // Get perifereia display name (Greek key)
         $perifereiasName = $this->getPerifereiasName($perifereia);
 
-        // Get filtered data - includes all data sources
-        $filteredData = $this->filterAllData($school, $gender, $perifereia);
-
         // Create unique session key for this conversation
         $sessionKey = 'chat_history_' . md5($school . $gender . $perifereia);
 
@@ -130,7 +125,7 @@ class ChatController
 
         // Call OpenAI API with conversation history
         try {
-            $response = $this->callOpenAI($_SESSION[$sessionKey], $filteredData, $school, $gender, $perifereiasName);
+            $response = $this->callOpenAI($_SESSION[$sessionKey], $school, $gender, $perifereiasName);
             
             // Add assistant response to conversation history
             $_SESSION[$sessionKey][] = ['role' => 'assistant', 'content' => $response];
@@ -139,15 +134,6 @@ class ChatController
         } catch (\Exception $e) {
             $this->app->json(['error' => 'Failed to get response: ' . $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Filter all data sources using DataFilterService
-     */
-    private function filterAllData($school, $gender, $perifereia)
-    {
-        // Get all filtered data from the service
-        return $this->dataFilterService->filterAllData($school, $gender, $perifereia);
     }
 
     /**
@@ -184,9 +170,9 @@ class ChatController
     }
 
     /**
-     * Call OpenAI API with the filtered data and conversation history
+     * Call OpenAI API with vector store file search using Assistants API
      */
-    private function callOpenAI($conversationHistory, $filteredData, $school, $gender, $perifereiasName)
+    private function callOpenAI($conversationHistory, $school, $gender, $perifereiasName)
     {
         $apiKey = $this->app->get('openai_api_key');
 
@@ -194,60 +180,135 @@ class ChatController
             throw new \Exception('OpenAI API key not configured');
         }
 
+        // Load vector store ID
+        $configPath = __DIR__ . '/../config/openai_files.json';
+        if (!file_exists($configPath)) {
+            throw new \Exception('Files not uploaded. Please upload files at /files first.');
+        }
+
+        $config = json_decode(file_get_contents($configPath), true);
+        $vectorStoreId = $config['vector_store_id'] ?? null;
+
+        if (!$vectorStoreId) {
+            throw new \Exception('Vector store ID not found');
+        }
+
         $client = OpenAI::client($apiKey);
 
-        // Create a system prompt with context
-        $systemPrompt = "Αναλύεις δεδομένα δεξιοτήτων και απασχόλησης αποφοίτων. 
-                Σχολή: {$school}, Φύλο: {$gender}, Περιφέρεια: {$perifereiasName}.\n\n
-                ΚΑΝΟΝΕΣ:\n
-                1. Χρησιμοποίησε ΜΟΝΟ τα δεδομένα που ακολουθούν - μην κάνεις υποθέσεις\n
-                2. Αν δεν υπάρχουν δεδομένα για μια ερώτηση, απάντησε 'Δεν υπάρχουν διαθέσιμα δεδομένα'\n
-                3. Παρουσίασε αριθμούς και ποσοστά όπου υπάρχουν\n
-                4. Απάντησε σύντομα και ουσιαστικά - 2-3 προτάσεις maximum\n
-                5. Μην αναφέρεις πηγές, μοντέλα AI, ή τεχνικές λεπτομέρειες\n\n
-                ΠΗΓΕΣ ΔΕΔΟΜΕΝΩΝ:\n
-                - antistixeia: Αντιστοιχία δεξιοτήτων με κλάδους (importance = Επάρκεια/Ανεπάρκεια, τιμές = συσχετισμός)\n
-                - deksiotites: Δεξιότητες ανά σχολή, περιοχή και επάγγελμα (importance = σημαντικότητα)\n
-                - hiring_job: Προσλήψεις ανά επάγγελμα, περιοχή και μήνα (pct_diff = % μεταβολή, count = αριθμός προσλήψεων)\n
-                - isozygio: Ισοζύγιο απασχόλησης ανά σχολή, κλάδο, έτος (τιμές = αλλαγή απασχόλησης)\n\n
-                ΔΕΔΟΜΕΝΑ:\n
-                ";
+        // Create instructions for the assistant
+        $instructions = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
 
+Ο ΡΟΛΟΣ ΣΟΥ:
+- Βοηθάς μαθητές να κατανοήσουν τις επαγγελματικές τους ευκαιρίες
+- Παρέχεις συμβουλές για δεξιότητες που χρειάζονται σε διάφορα επαγγέλματα
+- Δείχνεις τάσεις αγοράς εργασίας στην περιοχή τους
+- Ενθαρρύνεις και καθοδηγείς με θετικό, υποστηρικτικό τρόπο
+- Εξηγείς με απλά λόγια, κατάλληλα για μαθητές 15-18 ετών
 
-        // Encode with proper UTF-8 handling and validation
-        $jsonData = json_encode($filteredData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
+ΠΡΩΤΟ ΒΗΜΑ - ΥΠΟΧΡΕΩΤΙΚΟ:
+Πριν απαντήσεις σε οποιαδήποτε ερώτηση, διάβασε ΟΛΑ τα 4 αρχεία:
+1. antistixeia.json - Αντιστοιχία δεξιοτήτων με κλάδους
+2. deksiotites.json - Δεξιότητες ανά σχολή, περιοχή, επάγγελμα
+3. hiring_job.json - Προσλήψεις ανά περιοχή, φύλο, επάγγελμα
+4. isozygio.json - Ισοζύγιο απασχόλησης ανά σχολή, κλάδο, έτος
 
-        if ($jsonData === false) {
-            throw new \Exception('Failed to encode data: ' . json_last_error_msg());
-        }
+ΦΙΛΤΡΑ ΧΡΗΣΤΗ:
+- Σχολή: {$school} (αν είναι ΓΕΝΙΚΟ, ψάξε για ΓΕΛ στα αρχεία)
+- Φύλο: {$gender}
+- Περιφέρεια: {$perifereiasName}
 
+ΚΑΝΟΝΕΣ ΑΠΑΝΤΗΣΗΣ:
+1. Χρησιμοποίησε ΜΟΝΟ δεδομένα που ταιριάζουν με τα φίλτρα
+2. Αν δεν υπάρχουν δεδομένα, απάντησε: 'Δεν υπάρχουν διαθέσιμα δεδομένα για αυτό που ρωτάς'
+3. Παρουσίασε συγκεκριμένους αριθμούς, ποσοστά και επαγγέλματα
+4. Απάντησε σύντομα αλλά περιεκτικά (2-4 προτάσεις)
+5. ΜΗΝ ΒΑΛΕΙΣ ΠΟΤΕ CITATIONS! Καθόλου 【4:11†...】 ή [8:13†...] ή οποιοδήποτε reference!
+6. ΜΗΝ αναφέρεις ονόματα αρχείων (antistixeia.json, deksiotites.json κλπ) ή πηγές
+7. Γράψε ΜΟΝΟ καθαρό κείμενο χωρίς τεχνικά στοιχεία - σαν να μιλάς face-to-face
+8. Μίλα στα Ελληνικά, φυσικά και φιλικά σαν σύμβουλος καριέρας
+9. Απευθύνσου στο μαθητή με 'εσύ' - κάνε το προσωπικό
+10. Δώσε πρακτικές συμβουλές - τι δεξιότητες να αναπτύξει, τι επαγγέλματα να εξετάσει
+11. Να είσαι ενθαρρυντικός και θετικός - βοηθάς νέους να σχεδιάσουν το μέλλον τους
 
-        $systemPrompt .= $jsonData;
+ΠΑΡΑΔΕΙΓΜΑΤΑ ΚΑΛΩΝ ΑΠΑΝΤΗΣΕΩΝ:
+- 'Στην περιοχή σου υπάρχουν πολλές ευκαιρίες στον τομέα της πληροφορικής. Συγκεκριμένα, δουλειές σαν προγραμματιστής έχουν αυξηθεί κατά 15% φέτος.'
+- 'Για να δουλέψεις ως τεχνικός, θα χρειαστείς δεξιότητες σε μηχανολογία και ηλεκτρολογία. Υπάρχουν 120 θέσεις εργασίας διαθέσιμες.'
+- 'Τα επαγγέλματα στον τουρισμό είναι δημοφιλή στην περιοχή σου. Θα ήταν καλό να αναπτύξεις ξένες γλώσσες και επικοινωνία.'
 
-        // // Limit the context size if it's too large
-        // if (strlen($systemPrompt) > 120000) {
-        //     $systemPrompt = mb_substr($systemPrompt, 0, 120000, 'UTF-8') . "\n... (δεδομένα περικομμένα λόγω μεγέθους)";
-        // }
-        
-        // Build messages array with system prompt and conversation history
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt]
-        ];
-        
-        // Add conversation history
-        foreach ($conversationHistory as $msg) {
-            $messages[] = $msg;
-        }
+ΔΟΜΗ ΑΡΧΕΙΩΝ:
+- antistixeia: [school, skill, occupation, importance, values...]
+- deksiotites: [school, location, occupation, skill, importance]
+- hiring_job: [occupation, region, gender, month, count, pct_diff]
+- isozygio: [school, industry, year, ΓΕΛ_* columns, ΕΠΑΛ_* columns]";
 
-
-        die(json_encode($messages));
-
-        $response = $client->chat()->create([
-            'model' => 'gpt-4o-mini',
-            'messages' => $messages,
-            'temperature' => 0.4,
+        // Create or get assistant
+        $assistant = $client->assistants()->create([
+            'name' => 'Deksiotites Assistant',
+            'instructions' => $instructions,
+            'model' => 'gpt-4o',
+            'tools' => [
+                ['type' => 'file_search']
+            ],
+            'tool_resources' => [
+                'file_search' => [
+                    'vector_store_ids' => [$vectorStoreId]
+                ]
+            ]
         ]);
 
-        return $response->choices[0]->message->content;
+        // Create a thread
+        $thread = $client->threads()->create([]);
+
+        // Add all conversation history to thread
+        foreach ($conversationHistory as $msg) {
+            $client->threads()->messages()->create($thread->id, [
+                'role' => $msg['role'],
+                'content' => $msg['content']
+            ]);
+        }
+
+        // Run the assistant
+        $run = $client->threads()->runs()->create($thread->id, [
+            'assistant_id' => $assistant->id
+        ]);
+
+        // Poll for completion
+        $maxAttempts = 30;
+        $attempts = 0;
+        while ($attempts < $maxAttempts) {
+            $run = $client->threads()->runs()->retrieve($thread->id, $run->id);
+            
+            if ($run->status === 'completed') {
+                break;
+            } elseif ($run->status === 'failed' || $run->status === 'cancelled' || $run->status === 'expired') {
+                throw new \Exception('Assistant run failed: ' . $run->status);
+            }
+            
+            sleep(1);
+            $attempts++;
+        }
+
+        if ($attempts >= $maxAttempts) {
+            throw new \Exception('Assistant run timed out');
+        }
+
+        // Get the assistant's response
+        $messages = $client->threads()->messages()->list($thread->id, [
+            'limit' => 1,
+            'order' => 'desc'
+        ]);
+
+        $response = $messages->data[0]->content[0]->text->value ?? 'No response';
+        
+        // Remove any remaining citations/annotations 【...】 or [number:number†...]
+        $response = preg_replace('/【[^】]*】/u', '', $response);
+        $response = preg_replace('/\[[0-9]+:[0-9]+†[^\]]+\]/u', '', $response);
+        $response = trim($response);
+
+        // Clean up - delete thread and assistant
+        $client->threads()->delete($thread->id);
+        $client->assistants()->delete($assistant->id);
+
+        return $response;
     }
 }

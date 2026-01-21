@@ -26,9 +26,9 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
-            height: 600px;
+            height: 700px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -37,13 +37,16 @@
         .chat-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .chat-header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .filter-info {
@@ -346,10 +349,66 @@
         #clearHistoryBtn:active {
             transform: translateY(0);
         }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #f5f7ff 0%, #fef5ff 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e8ecff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+        }
+
+        .welcome-section h3 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sample-questions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sample-question {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .sample-question::before {
+            content: '💬';
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sample-question:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .sample-question:active {
+            transform: translateX(3px);
+        }
     </style>
 </head>
 <body>
-    <a href="/chat" class="back-button">← Πίσω</a>
+    <a href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat" class="back-button">← Πίσω</a>
 
     <div class="chat-container">
         <div class="chat-header">
@@ -399,6 +458,7 @@
         const gender = <?php echo json_encode($gender); ?>;
         const perifereia = <?php echo json_encode($perifereia); ?>;
         const conversationHistory = <?php echo $conversationHistory ?? '[]'; ?>;
+        const baseUrl = <?php echo json_encode($baseUrl ?? ''); ?>;
 
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
@@ -446,6 +506,12 @@
             
             if (!message) return;
 
+            // Remove welcome section if it exists
+            const welcomeSection = document.getElementById('welcomeSection');
+            if (welcomeSection) {
+                welcomeSection.remove();
+            }
+
             // Add user message to chat
             addMessage(message, true);
             messageInput.value = '';
@@ -456,7 +522,7 @@
             showTyping();
 
             try {
-                const response = await fetch('/chat/message', {
+                const response = await fetch(baseUrl + '/chat/message', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -491,11 +557,23 @@
 
         // Load previous conversation history
         function loadConversationHistory() {
-            // Always show welcome message first
-            addMessage('Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με τις δεξιότητες και την απασχόληση των αποφοίτων. Ρώτησέ με οτιδήποτε για ' + school + ', ' + gender + ' στην περιφέρεια ' + <?php echo json_encode($perifereiasName); ?> + '.', false);
+            // Format school name properly
+            const schoolName = school === 'ΓΕΝΙΚΟ' ? 'Γενικό Λύκειο (ΓΕΛ)' : school;
             
-            // Load all previous messages if they exist
-            if (conversationHistory.length > 0) {
+            // Format gender properly
+            const genderFormatted = gender.toLowerCase();
+            
+            // Format perifereia - capitalize first letter of each word
+            const perifereiasFormatted = <?php echo json_encode($perifereiasName); ?>.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Always show welcome message first
+            addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για ${schoolName}, ${genderFormatted}, στην περιφέρεια ${perifereiasFormatted}.`, false);
+            
+            // Show sample questions only if no conversation history
+            if (conversationHistory.length === 0) {
+                showSampleQuestions();
+            } else {
+                // Load all previous messages if they exist
                 conversationHistory.forEach(msg => {
                     addMessage(msg.content, msg.role === 'user');
                 });
@@ -503,6 +581,42 @@
             
             // Scroll to bottom after loading
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showSampleQuestions() {
+            const welcomeSection = document.createElement('div');
+            welcomeSection.className = 'welcome-section';
+            welcomeSection.id = 'welcomeSection';
+            
+            const sampleQuestions = [
+                'Ποια επαγγέλματα είναι δημοφιλή στην περιοχή μου;',
+                'Τι δεξιότητες χρειάζομαι για να δουλέψω σε γραφείο;',
+                'Ποιοι κλάδοι έχουν περισσότερες προσλήψεις;',
+                'Τι δεξιότητες αναζητούν οι εργοδότες στην περιοχή μου;'
+            ];
+            
+            welcomeSection.innerHTML = `
+                <h3><span>💡</span> Προτεινόμενες ερωτήσεις</h3>
+                <div class="sample-questions">
+                    ${sampleQuestions.map(q => `<div class="sample-question" data-question="${q}">${q}</div>`).join('')}
+                </div>
+            `;
+            
+            chatMessages.insertBefore(welcomeSection, typingIndicator);
+            
+            // Add click event listeners to sample questions
+            document.querySelectorAll('.sample-question').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const question = this.getAttribute('data-question');
+                    messageInput.value = question;
+                    
+                    // Remove welcome section
+                    document.getElementById('welcomeSection').remove();
+                    
+                    // Send the message
+                    sendMessage();
+                });
+            });
         }
 
         // Event listeners
@@ -517,7 +631,7 @@
         // Clear history button - no confirmation
         document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
             try {
-                await fetch('/chat/clear', {
+                await fetch(baseUrl + '/chat/clear', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

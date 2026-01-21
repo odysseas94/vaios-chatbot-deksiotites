@@ -203,11 +203,12 @@
         <div class="button-group">
             <button class="btn-upload" id="uploadBtn">📤 Ανέβασμα Αρχείων</button>
             <button class="btn-delete" id="deleteBtn" style="display: none;">🗑️ Διαγραφή Αρχείων</button>
-            <button class="btn-back" onclick="window.location.href='/chat'">← Πίσω</button>
+            <button class="btn-back" onclick="window.location.href='<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat'">← Πίσω</button>
         </div>
     </div>
 
     <script>
+        const baseUrl = <?php echo json_encode($baseUrl ?? ''); ?>;
         const uploadBtn = document.getElementById('uploadBtn');
         const deleteBtn = document.getElementById('deleteBtn');
         const loading = document.getElementById('loading');
@@ -230,7 +231,7 @@
 
         async function checkStatus() {
             try {
-                const response = await fetch('/files/status');
+                const response = await fetch(baseUrl + '/files/status');
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('vectorStoreId').textContent = data.vector_store_id;
@@ -253,7 +254,7 @@
             showLoading(true);
             
             try {
-                const response = await fetch('/files/upload', {
+                const response = await fetch(baseUrl + '/files/upload', {
                     method: 'POST'
                 });
 
@@ -280,7 +281,7 @@
             showLoading(true);
 
             try {
-                const response = await fetch('/files/delete', {
+                const response = await fetch(baseUrl + '/files/delete', {
                     method: 'POST'
                 });
 

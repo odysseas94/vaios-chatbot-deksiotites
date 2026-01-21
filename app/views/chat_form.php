@@ -125,7 +125,7 @@
             ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο και την περιφέρεια για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
         </div>
 
-        <form method="GET" action="/chat/interface" id="filterForm">
+        <form method="GET" action="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat/interface" id="filterForm">
             <div class="form-group">
                 <label for="school">Τύπος Σχολείου:</label>
                 <select name="school" id="school" required>

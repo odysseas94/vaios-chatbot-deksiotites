@@ -31,10 +31,10 @@ class FileUploadController
 
             // Define the files to upload
             $files = [
-                'antistixeia' => __DIR__ . '/../../resources/data/antistixeia.json',
-                'deksiotites' => __DIR__ . '/../../resources/data/deksiotites.json',
-                'hiring_job' => __DIR__ . '/../../resources/data/hiring_job.json',
-                'isozygio' => __DIR__ . '/../../resources/data/isozygio.json',
+                'antistixeia' => __DIR__ . '/../../resources/csv/antistixeia.json',
+                'deksiotites' => __DIR__ . '/../../resources/csv/deksiotites.json',
+                'hiring_job' => __DIR__ . '/../../resources/csv/hiring_job.json',
+                'isozygio' => __DIR__ . '/../../resources/csv/isozygio.json',
             ];
 
             $uploadedFileIds = [];
@@ -147,6 +147,7 @@ class FileUploadController
      */
     public function showUploadPage()
     {
-        $this->app->render('file_upload');
+        $baseUrl = $this->app->get('flight.base_url');
+        $this->app->render('file_upload', ['baseUrl' => $baseUrl]);
     }
 }
