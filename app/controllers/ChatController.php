@@ -23,12 +23,17 @@ class ChatController
      */
     public function showForm()
     {
-        $baseUrl = $this->app->get('flight.base_url');
+        $request = $this->app->request();
+        $scheme = $request->scheme;
+        $host = $request->host;
+        $basePath = $this->app->get('flight.base_url');
+        $baseUrl = $scheme . '://' . $host . $basePath;
+        
         $this->app->render('chat_form', ['baseUrl' => $baseUrl]);
     }
 
     /**
-     * Clear conversation history - clears ALL chat histories from session
+     * Clear conversation history - clears ALL chat histories and thread IDs from session
      */
     public function clearHistory()
     {
@@ -36,9 +41,9 @@ class ChatController
             session_start();
         }
 
-        // Clear all chat histories from the session
+        // Clear all chat histories and thread IDs from the session
         foreach ($_SESSION as $key => $value) {
-            if (strpos($key, 'chat_history_') === 0) {
+            if (strpos($key, 'chat_history_') === 0 || strpos($key, 'thread_id_') === 0) {
                 unset($_SESSION[$key]);
             }
         }
@@ -76,7 +81,11 @@ class ChatController
         $sessionKey = 'chat_history_' . md5($school . $gender . $perifereia);
         $conversationHistory = $_SESSION[$sessionKey] ?? [];
 
-        $baseUrl = $this->app->get('flight.base_url');
+        $request = $this->app->request();
+        $scheme = $request->scheme;
+        $host = $request->host;
+        $basePath = $this->app->get('flight.base_url');
+        $baseUrl = $scheme . '://' . $host . $basePath;
 
         $this->app->render('chat_interface', [
             'school' => $school,
@@ -180,7 +189,7 @@ class ChatController
             throw new \Exception('OpenAI API key not configured');
         }
 
-        // Load vector store ID
+        // Load vector store ID and assistant ID
         $configPath = __DIR__ . '/../config/openai_files.json';
         if (!file_exists($configPath)) {
             throw new \Exception('Files not uploaded. Please upload files at /files first.');
@@ -188,6 +197,7 @@ class ChatController
 
         $config = json_decode(file_get_contents($configPath), true);
         $vectorStoreId = $config['vector_store_id'] ?? null;
+        $assistantId = $config['assistant_id'] ?? null;
 
         if (!$vectorStoreId) {
             throw new \Exception('Vector store ID not found');
@@ -195,8 +205,10 @@ class ChatController
 
         $client = OpenAI::client($apiKey);
 
-        // Create instructions for the assistant
-        $instructions = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
+        // Create assistant only if it doesn't exist
+        if (!$assistantId) {
+            // Create instructions for the assistant
+            $instructions = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
 
 Ο ΡΟΛΟΣ ΣΟΥ:
 - Βοηθάς μαθητές να κατανοήσουν τις επαγγελματικές τους ευκαιρίες
@@ -212,13 +224,8 @@ class ChatController
 3. hiring_job.json - Προσλήψεις ανά περιοχή, φύλο, επάγγελμα
 4. isozygio.json - Ισοζύγιο απασχόλησης ανά σχολή, κλάδο, έτος
 
-ΦΙΛΤΡΑ ΧΡΗΣΤΗ:
-- Σχολή: {$school} (αν είναι ΓΕΝΙΚΟ, ψάξε για ΓΕΛ στα αρχεία)
-- Φύλο: {$gender}
-- Περιφέρεια: {$perifereiasName}
-
 ΚΑΝΟΝΕΣ ΑΠΑΝΤΗΣΗΣ:
-1. Χρησιμοποίησε ΜΟΝΟ δεδομένα που ταιριάζουν με τα φίλτρα
+1. Χρησιμοποίησε ΜΟΝΟ δεδομένα που ταιριάζουν με τα φίλτρα (Σχολή, Φύλο, Περιφέρεια)
 2. Αν δεν υπάρχουν δεδομένα, απάντησε: 'Δεν υπάρχουν διαθέσιμα δεδομένα για αυτό που ρωτάς'
 3. Παρουσίασε συγκεκριμένους αριθμούς, ποσοστά και επαγγέλματα
 4. Απάντησε σύντομα αλλά περιεκτικά (2-4 προτάσεις)
@@ -241,42 +248,62 @@ class ChatController
 - hiring_job: [occupation, region, gender, month, count, pct_diff]
 - isozygio: [school, industry, year, ΓΕΛ_* columns, ΕΠΑΛ_* columns]";
 
-        // Create or get assistant
-        $assistant = $client->assistants()->create([
-            'name' => 'Deksiotites Assistant',
-            'instructions' => $instructions,
-            'model' => 'gpt-4o',
-            'tools' => [
-                ['type' => 'file_search']
-            ],
-            'tool_resources' => [
-                'file_search' => [
-                    'vector_store_ids' => [$vectorStoreId]
+            $assistant = $client->assistants()->create([
+                'name' => 'Deksiotites Assistant',
+                'instructions' => $instructions,
+                'model' => 'gpt-4o-mini',
+                'tools' => [
+                    ['type' => 'file_search']
+                ],
+                'tool_resources' => [
+                    'file_search' => [
+                        'vector_store_ids' => [$vectorStoreId]
+                    ]
                 ]
-            ]
-        ]);
-
-        // Create a thread
-        $thread = $client->threads()->create([]);
-
-        // Add all conversation history to thread
-        foreach ($conversationHistory as $msg) {
-            $client->threads()->messages()->create($thread->id, [
-                'role' => $msg['role'],
-                'content' => $msg['content']
             ]);
+
+            $assistantId = $assistant->id;
+
+            // Save assistant ID to config
+            $config['assistant_id'] = $assistantId;
+            file_put_contents($configPath, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         }
 
+        // Get or create thread for this conversation session
+        $sessionKey = 'thread_id_' . md5($school . $gender . $perifereiasName);
+        $threadId = $_SESSION[$sessionKey] ?? null;
+
+        if (!$threadId) {
+            // Create a new thread for this conversation
+            $thread = $client->threads()->create([]);
+            $threadId = $thread->id;
+            $_SESSION[$sessionKey] = $threadId;
+        }
+
+        // Add only the latest user message (last item in conversation history)
+        $latestMessage = end($conversationHistory);
+        $client->threads()->messages()->create($threadId, [
+            'role' => $latestMessage['role'],
+            'content' => $latestMessage['content']
+        ]);
+
+        // Update instructions with current filters
+        $contextInstructions = "ΦΙΛΤΡΑ ΧΡΗΣΤΗ:
+- Σχολή: {$school} (αν είναι ΓΕΝΙΚΟ, ψάξε για ΓΕΛ στα αρχεία)
+- Φύλο: {$gender}
+- Περιφέρεια: {$perifereiasName}";
+
         // Run the assistant
-        $run = $client->threads()->runs()->create($thread->id, [
-            'assistant_id' => $assistant->id
+        $run = $client->threads()->runs()->create($threadId, [
+            'assistant_id' => $assistantId,
+            'additional_instructions' => $contextInstructions
         ]);
 
         // Poll for completion
         $maxAttempts = 30;
         $attempts = 0;
         while ($attempts < $maxAttempts) {
-            $run = $client->threads()->runs()->retrieve($thread->id, $run->id);
+            $run = $client->threads()->runs()->retrieve($threadId, $run->id);
             
             if ($run->status === 'completed') {
                 break;
@@ -293,7 +320,7 @@ class ChatController
         }
 
         // Get the assistant's response
-        $messages = $client->threads()->messages()->list($thread->id, [
+        $messages = $client->threads()->messages()->list($threadId, [
             'limit' => 1,
             'order' => 'desc'
         ]);
@@ -304,10 +331,6 @@ class ChatController
         $response = preg_replace('/【[^】]*】/u', '', $response);
         $response = preg_replace('/\[[0-9]+:[0-9]+†[^\]]+\]/u', '', $response);
         $response = trim($response);
-
-        // Clean up - delete thread and assistant
-        $client->threads()->delete($thread->id);
-        $client->assistants()->delete($assistant->id);
 
         return $response;
     }

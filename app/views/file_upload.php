@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e8eaf0 0%, #f0f2f5 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -101,13 +101,13 @@
         }
 
         .btn-upload {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1877f2 0%, #0e5fc4 100%);
             color: white;
         }
 
         .btn-upload:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 20px rgba(24, 119, 242, 0.4);
         }
 
         .btn-delete {
@@ -138,7 +138,7 @@
             display: none;
             text-align: center;
             padding: 20px;
-            color: #667eea;
+            color: #1877f2;
         }
 
         .loading.active {

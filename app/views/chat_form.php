@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e8eaf0 0%, #f0f2f5 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -69,19 +69,19 @@
         }
 
         select:hover {
-            border-color: #667eea;
+            border-color: #1877f2;
         }
 
         select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1877f2;
             background-color: white;
         }
 
         button {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1877f2 0%, #0e5fc4 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -93,7 +93,7 @@
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 20px rgba(24, 119, 242, 0.4);
         }
 
         button:active {

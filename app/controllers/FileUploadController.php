@@ -147,7 +147,12 @@ class FileUploadController
      */
     public function showUploadPage()
     {
-        $baseUrl = $this->app->get('flight.base_url');
+        $request = $this->app->request();
+        $scheme = $request->scheme;
+        $host = $request->host;
+        $basePath = $this->app->get('flight.base_url');
+        $baseUrl = $scheme . '://' . $host . $basePath;
+        
         $this->app->render('file_upload', ['baseUrl' => $baseUrl]);
     }
 }
