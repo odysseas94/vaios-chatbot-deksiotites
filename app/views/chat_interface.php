@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Δεξιοτήτων - Συνομιλία</title>
+    <title>Ποσοτικά και ποιοτικά στοιχεία για τις απαιτήσεις σε γνώσεις και δεξιότητες στην αγορά εργασίας αποφοίτων δευτεροβάθμιας εκπαίδευσης - Ψηφιακά σημεία πληροφόρησης</title>
+    <link rel="icon" type="image/x-icon" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/apple-touch-icon.png">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <style>
         * {
@@ -83,6 +87,19 @@
             color: white;
             flex: 1;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            height: auto;
+            width: clamp(120px, 20vw, 180px);
+            max-height: 40px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         .filter-info {
@@ -565,7 +582,10 @@
         <div class="chat-header">
             <div class="header-top">
                 <a href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat" class="back-button">← Πίσω</a>
-                <h1>🤖 Chatbot Δεξιοτήτων</h1>
+                <h1>
+                    <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+                Ψηφιακά σημεία πληροφόρησης - ChatBot
+                </h1>
                 <div class="header-buttons">
                     <button id="clearHistoryBtn">
                         <span>🗑️</span>
@@ -728,16 +748,16 @@
         // Load previous conversation history
         function loadConversationHistory() {
             // Format school name properly
-            const schoolName = school === 'ΓΕΝΙΚΟ' ? 'Γενικό Λύκειο (ΓΕΛ)' : school;
+            const schoolName = school === 'Γενικό' ? 'Γενικού Λυκείου' : 'Επαγγελματικού (ΕΠΑΛ) Λυκείου';
             
             // Format gender properly
-            const genderFormatted = gender.toLowerCase();
+            const genderFormatted = gender === 'Άνδρας' ? 'Άντρες' : 'Γυναίκες';
             
             // Format perifereia - capitalize first letter of each word
             const perifereiasFormatted = "<?=   $perifereiasName ?>";
             
             // Always show welcome message first
-            addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για ${schoolName}, ${genderFormatted}, στην Περιφέρεια ${perifereiasFormatted}.`, false);
+            addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για αποφοίτους ${schoolName}, ${genderFormatted}, στην Περιφέρεια ${perifereiasFormatted}.`, false);
             
             // Show sample questions only if no conversation history
             if (conversationHistory.length === 0) {

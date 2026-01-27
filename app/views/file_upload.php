@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenAI File Upload - Διαχείριση</title>
+    <title>Ποσοτικά και ποιοτικά στοιχεία για τις απαιτήσεις σε γνώσεις και δεξιότητες στην αγορά εργασίας αποφοίτων δευτεροβάθμιας εκπαίδευσης - Ψηφιακά σημεία πληροφόρησης</title>
+    <link rel="icon" type="image/x-icon" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/apple-touch-icon.png">
     <style>
         * {
             margin: 0;
@@ -31,6 +35,15 @@
             color: #333;
             margin-bottom: 10px;
             font-size: 28px;
+        }
+
+        .logo {
+            width: clamp(150px, 30vw, 250px);
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 20px;
         }
 
         .subtitle {
@@ -171,6 +184,9 @@
 </head>
 <body>
     <div class="container">
+        <div style="text-align: center;">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+        </div>
         <h1>📁 OpenAI File Upload</h1>
         <p class="subtitle">Διαχείριση αρχείων δεδομένων για το Chatbot</p>
 

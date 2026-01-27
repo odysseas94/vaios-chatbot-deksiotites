@@ -147,22 +147,15 @@ class ChatController
 
     /**
      * Get perifereia display name
-     * Searches both keys and values in the perifereia map and returns the first Greek key as-is
+     * Checks if the value exists in the perifereia array and returns it
      */
     private function getPerifereiasName($perifereiasValue)
     {
         $perifereiasData = $this->loadPerifereiasData();
 
-        // Check if the value is a key (Greek name)
-        if (isset($perifereiasData[$perifereiasValue])) {
-            return $perifereiasValue; // Return the Greek key as-is
-        }
-
-        // Check if the value is an English value - return the first Greek key found
-        foreach ($perifereiasData as $greekName => $englishName) {
-            if ($englishName === $perifereiasValue) {
-                return $greekName; // Return the Greek key as-is
-            }
+        // Check if the value exists in the array
+        if (in_array($perifereiasValue, $perifereiasData)) {
+            return $perifereiasValue;
         }
 
         return 'Άγνωστη Περιφέρεια';
@@ -179,7 +172,7 @@ class ChatController
     }
 
     /**
-     * Call OpenAI API with vector store file search using Assistants API
+     * Call OpenAI API using Chat Completions API with file contents in context
      */
     private function callOpenAI($conversationHistory, $school, $gender, $perifereiasName)
     {
@@ -189,26 +182,25 @@ class ChatController
             throw new \Exception('OpenAI API key not configured');
         }
 
-        // Load vector store ID and assistant ID
-        $configPath = __DIR__ . '/../config/openai_files.json';
-        if (!file_exists($configPath)) {
-            throw new \Exception('Files not uploaded. Please upload files at /files first.');
+        // Load data files
+        $antistixeiaPath = __DIR__ . '/../../resources/csv/antistixeia.txt';
+        $deksiotitesPath = __DIR__ . '/../../resources/csv/deksiotites.txt';
+
+        if (!file_exists($antistixeiaPath) || !file_exists($deksiotitesPath)) {
+            throw new \Exception('Data files not found');
         }
 
-        $config = json_decode(file_get_contents($configPath), true);
-        $vectorStoreId = $config['vector_store_id'] ?? null;
-        $assistantId = $config['assistant_id'] ?? null;
-
-        if (!$vectorStoreId) {
-            throw new \Exception('Vector store ID not found');
-        }
+        $antistixeiaData = file_get_contents($antistixeiaPath);
+        $deksiotitesData = file_get_contents($deksiotitesPath);
 
         $client = OpenAI::client($apiKey);
 
-        // Create assistant only if it doesn't exist
-        if (!$assistantId) {
-            // Create instructions for the assistant
-            $instructions = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
+        // Format filters for instructions
+        $schoolFilter = $school === 'Γενικό' ? 'ΓΕΛ' : $school;
+        $genderFilter = $gender === "Άνδρας" ? "Άνδρες" : "Γυναίκες";
+
+        // Create system message with instructions and data
+        $systemMessage = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
 
 Ο ΡΟΛΟΣ ΣΟΥ:
 - Βοηθάς μαθητές να κατανοήσουν τις επαγγελματικές τους ευκαιρίες
@@ -319,10 +311,13 @@ class ChatController
         ]);
 
         // Update instructions with current filters
+        $schoolFilter=$school==='Γενικό' ? 'ΓΕΛ' : $school;
+        $genderFilter=$gender==="Άνδρας"?"Άνδρες":"Γυναίκες";
+ 
         $contextInstructions = "ΦΙΛΤΡΑ ΧΡΗΣΤΗ:
-- Σχολή: {$school} (αν είναι ΓΕΝΙΚΟ, ψάξε για ΓΕΛ στα αρχεία)
-- Φύλο: {$gender}
-- Περιφέρεια: {$perifereiasName}";
+            - Σχολή: {$schoolFilter} (αν είναι ΓΕΝΙΚΟ, ψάξε για ΓΕΛ στα αρχεία)
+            - Φύλο: {$genderFilter}
+            - Περιφέρεια: Περιφέρεια {$perifereiasName}";
 
         // Run the assistant
         $run = $client->threads()->runs()->create($threadId, [

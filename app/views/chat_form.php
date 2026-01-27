@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="el">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Δεξιοτήτων - Επιλογή Φίλτρων</title>
+    <title>Ποσοτικά και ποιοτικά στοιχεία για τις απαιτήσεις σε γνώσεις και δεξιότητες στην αγορά εργασίας αποφοίτων δευτεροβάθμιας εκπαίδευσης - Ψηφιακά σημεία πληροφόρησης</title>
+    <link rel="icon" type="image/x-icon" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/favicon/apple-touch-icon.png">
     <style>
         * {
             margin: 0;
@@ -26,7 +31,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            max-width: 500px;
+            max-width: 700px;
             width: 100%;
         }
 
@@ -35,6 +40,14 @@
             margin-bottom: 10px;
             text-align: center;
             font-size: 28px;
+        }
+
+        .logo {
+            width: clamp(150px, 30vw, 250px);
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+            margin-bottom: 20px;
         }
 
         .subtitle {
@@ -116,9 +129,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>🎓 Chatbot Δεξιοτήτων</h1>
+        <div style="text-align: center;">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+        </div>
+        <h1>Ψηφιακά σημεία πληροφόρησης</h1>
         <p class="subtitle">Επιλέξτε τα κριτήρια φιλτραρίσματος</p>
 
         <div class="info-box">
@@ -151,21 +168,11 @@
                     <?php
                     $perifereiasPath = __DIR__ . '/../../resources/data/perifereia.json';
                     $perifereiasData = json_decode(file_get_contents($perifereiasPath), true);
-                    
-                    // Group by English name to avoid duplicates
-                    $uniqueRegions = [];
-                    foreach ($perifereiasData as $greekName => $englishName) {
-                        if (!isset($uniqueRegions[$englishName])) {
-                            $uniqueRegions[$englishName] = $greekName;
-                        }
-                    }
-                    
-                    // Sort by Greek name
-                    asort($uniqueRegions);
-                    
-                    foreach ($uniqueRegions as $englishName => $greekName) {
-                        echo '<option value="' . htmlspecialchars($greekName) . '">' 
-                             . htmlspecialchars($greekName) . '</option>';
+
+                    // Iterate through the array
+                    foreach ($perifereiasData as $perifereia) {
+                        echo '<option value="' . htmlspecialchars($perifereia) . '">'
+                            . htmlspecialchars($perifereia) . '</option>';
                     }
                     ?>
                 </select>
@@ -189,4 +196,5 @@
         });
     </script>
 </body>
+
 </html>
