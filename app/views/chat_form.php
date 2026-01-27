@@ -127,10 +127,10 @@
 
         <form method="GET" action="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat/interface" id="filterForm">
             <div class="form-group">
-                <label for="school">Τύπος Σχολείου:</label>
+                <label for="school">Τύπος σχολείου:</label>
                 <select name="school" id="school" required>
-                    <option value="">-- Επιλέξτε Σχολείο --</option>
-                    <option value="ΓΕΝΙΚΟ">ΓΕΝΙΚΟ (ΓΕΛ)</option>
+                    <option value="">-- Επιλέξτε σχολείο --</option>
+                    <option value="Γενικό">Γενικό (ΓΕΛ)</option>
                     <option value="ΕΠΑΛ">ΕΠΑΛ</option>
                 </select>
             </div>
@@ -138,7 +138,7 @@
             <div class="form-group">
                 <label for="gender">Φύλο:</label>
                 <select name="gender" id="gender" required>
-                    <option value="">-- Επιλέξτε Φύλο --</option>
+                    <option value="">-- Επιλέξτε φύλο --</option>
                     <option value="Άνδρας">Άνδρας</option>
                     <option value="Γυναίκα">Γυναίκα</option>
                 </select>
@@ -164,9 +164,8 @@
                     asort($uniqueRegions);
                     
                     foreach ($uniqueRegions as $englishName => $greekName) {
-                        $displayName = mb_strtoupper($greekName, 'UTF-8');
                         echo '<option value="' . htmlspecialchars($greekName) . '">' 
-                             . htmlspecialchars($displayName) . '</option>';
+                             . htmlspecialchars($greekName) . '</option>';
                     }
                     ?>
                 </select>

@@ -411,8 +411,14 @@
             display: block;
         }
 
-        #clearHistoryBtn {
-            margin-top: 12px;
+        .header-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        #clearHistoryBtn, #showQuestionsBtn {
             padding: clamp(8px, 1.5vw, 10px) clamp(14px, 2vw, 18px);
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -428,13 +434,13 @@
             backdrop-filter: blur(10px);
         }
 
-        #clearHistoryBtn:hover {
+        #clearHistoryBtn:hover, #showQuestionsBtn:hover {
             background: rgba(255, 255, 255, 0.35);
             transform: translateY(-1px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        #clearHistoryBtn:active {
+        #clearHistoryBtn:active, #showQuestionsBtn:active {
             transform: translateY(0);
         }
 
@@ -524,6 +530,10 @@
                 justify-content: center;
             }
 
+            .header-buttons {
+                align-items: center;
+            }
+
             .filter-info {
                 flex-direction: row;
                 align-items: center;
@@ -556,10 +566,16 @@
             <div class="header-top">
                 <a href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat" class="back-button">← Πίσω</a>
                 <h1>🤖 Chatbot Δεξιοτήτων</h1>
-                <button id="clearHistoryBtn">
-                    <span>🗑️</span>
-                    <span>Νέα Συνομιλία</span>
-                </button>
+                <div class="header-buttons">
+                    <button id="clearHistoryBtn">
+                        <span>🗑️</span>
+                        <span>Νέα Συνομιλία</span>
+                    </button>
+                    <button id="showQuestionsBtn">
+                        <span>💡</span>
+                        <span>Προτεινόμενες</span>
+                    </button>
+                </div>
             </div>
             <div class="filter-info">
                 <span class="filter-badge">📚 <?php echo htmlspecialchars($school); ?></span>
@@ -658,6 +674,10 @@
 
             // Add user message to chat
             addMessage(message, true);
+            
+            // Update conversation history with user message
+            conversationHistory.push({ role: 'user', content: message });
+            
             messageInput.value = '';
             
             // Disable input while processing
@@ -687,11 +707,17 @@
 
                 hideTyping();
                 addMessage(data.response, false);
+                
+                // Update conversation history with assistant response
+                conversationHistory.push({ role: 'assistant', content: data.response });
 
             } catch (error) {
                 hideTyping();
                 showError('Σφάλμα: ' + error.message);
                 console.error('Error:', error);
+                
+                // Remove the user message from history since it failed
+                conversationHistory.pop();
             } finally {
                 sendButton.disabled = false;
                 messageInput.disabled = false;
@@ -708,10 +734,10 @@
             const genderFormatted = gender.toLowerCase();
             
             // Format perifereia - capitalize first letter of each word
-            const perifereiasFormatted = <?php echo json_encode($perifereiasName); ?>.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+            const perifereiasFormatted = "<?=   $perifereiasName ?>";
             
             // Always show welcome message first
-            addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για ${schoolName}, ${genderFormatted}, στην περιφέρεια ${perifereiasFormatted}.`, false);
+            addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για ${schoolName}, ${genderFormatted}, στην Περιφέρεια ${perifereiasFormatted}.`, false);
             
             // Show sample questions only if no conversation history
             if (conversationHistory.length === 0) {
@@ -728,23 +754,48 @@
         }
 
         function showSampleQuestions() {
+            // Remove existing welcome section if it exists
+            const existingSection = document.getElementById('welcomeSection');
+            if (existingSection) {
+                existingSection.remove();
+            }
+
             const welcomeSection = document.createElement('div');
             welcomeSection.className = 'welcome-section';
             welcomeSection.id = 'welcomeSection';
             
-            const sampleQuestions = [
+            const allSampleQuestions = [
                 'Ποια επαγγέλματα είναι δημοφιλή στην περιοχή μου;',
                 'Τι δεξιότητες χρειάζομαι για να δουλέψω σε γραφείο;',
                 'Ποιοι κλάδοι έχουν περισσότερες προσλήψεις;',
                 'Τι δεξιότητες αναζητούν οι εργοδότες στην περιοχή μου;'
             ];
             
-            welcomeSection.innerHTML = `
-                <h3><span>💡</span> Προτεινόμενες ερωτήσεις</h3>
-                <div class="sample-questions">
-                    ${sampleQuestions.map(q => `<div class="sample-question" data-question="${q}">${q}</div>`).join('')}
-                </div>
-            `;
+            // Filter out questions that have already been asked
+            const askedQuestions = conversationHistory
+                .filter(msg => msg.role === 'user')
+                .map(msg => msg.content.trim());
+            
+            const availableQuestions = allSampleQuestions.filter(q => 
+                !askedQuestions.includes(q.trim())
+            );
+            
+            // If no questions are available, show a message
+            if (availableQuestions.length === 0) {
+                welcomeSection.innerHTML = `
+                    <h3><span>💡</span> Προτεινόμενες ερωτήσεις</h3>
+                    <div style="color: #666; font-size: 14px; padding: 10px;">
+                        Έχεις ήδη κάνει όλες τις προτεινόμενες ερωτήσεις! Κάνε τη δική σου ερώτηση παρακάτω.
+                    </div>
+                `;
+            } else {
+                welcomeSection.innerHTML = `
+                    <h3><span>💡</span> Προτεινόμενες ερωτήσεις</h3>
+                    <div class="sample-questions">
+                        ${availableQuestions.map(q => `<div class="sample-question" data-question="${q}">${q}</div>`).join('')}
+                    </div>
+                `;
+            }
             
             chatMessages.insertBefore(welcomeSection, typingIndicator);
             
@@ -761,6 +812,9 @@
                     sendMessage();
                 });
             });
+
+            // Scroll to show the questions
+            welcomeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         // Event listeners
@@ -792,6 +846,11 @@
             } catch (error) {
                 showError('Σφάλμα κατά την εκκαθάριση ιστορικού');
             }
+        });
+
+        // Show questions button - shows recommended questions without clearing conversation
+        document.getElementById('showQuestionsBtn').addEventListener('click', () => {
+            showSampleQuestions();
         });
 
         // Load conversation history on page load

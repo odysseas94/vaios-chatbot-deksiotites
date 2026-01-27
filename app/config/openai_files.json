@@ -1,11 +1,9 @@
 {
-    "vector_store_id": "vs_697081a074448191a3a519deae2278cb",
+    "vector_store_id": "vs_69788e6284e48191aca5a9d9bccb73d2",
     "file_ids": {
-        "antistixeia": "file-7ZK2qmqpYacc1Kxaf7eDNx",
-        "deksiotites": "file-MUNdm4oF4cx4NWaRd7qFcU",
-        "hiring_job": "file-KFMGW8rKUVfoCh2qLbRLgp",
-        "isozygio": "file-TR1oyGAwh7HwWmCwV9KrDG"
+        "antistixeia": "file-3dqMbB4HThxLFpSvjKK2Sg",
+        "deksiotites": "file-VXUdQawdh519TPEYGHU6yq"
     },
-    "uploaded_at": "2026-01-21 09:34:57",
-    "assistant_id": "asst_CXEvCMz6hMBSLzVUgT4ojXqM"
+    "uploaded_at": "2026-01-27 12:07:31",
+    "assistant_id": "asst_KPkTURDObQGxDZQsJmqZxXTV"
 }

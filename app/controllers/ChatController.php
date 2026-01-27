@@ -66,7 +66,7 @@ class ChatController
         $perifereia = $this->app->request()->query['perifereia'] ?? '';
 
         // Validate inputs
-        $validSchools = ['ΓΕΝΙΚΟ', 'ΕΠΑΛ'];
+        $validSchools = ['Γενικό', 'ΕΠΑΛ'];
         $validGenders = ['Άνδρας', 'Γυναίκα'];
 
         if (!in_array($school, $validSchools) || !in_array($gender, $validGenders) || empty($perifereia)) {
@@ -147,7 +147,7 @@ class ChatController
 
     /**
      * Get perifereia display name
-     * Searches both keys and values in the perifereia map and returns the first Greek key in uppercase
+     * Searches both keys and values in the perifereia map and returns the first Greek key as-is
      */
     private function getPerifereiasName($perifereiasValue)
     {
@@ -155,17 +155,17 @@ class ChatController
 
         // Check if the value is a key (Greek name)
         if (isset($perifereiasData[$perifereiasValue])) {
-            return mb_strtoupper($perifereiasValue, 'UTF-8'); // Return the Greek key in uppercase
+            return $perifereiasValue; // Return the Greek key as-is
         }
 
         // Check if the value is an English value - return the first Greek key found
         foreach ($perifereiasData as $greekName => $englishName) {
             if ($englishName === $perifereiasValue) {
-                return mb_strtoupper($greekName, 'UTF-8'); // Return the Greek key in uppercase
+                return $greekName; // Return the Greek key as-is
             }
         }
 
-        return 'ΑΓΝΩΣΤΗ ΠΕΡΙΦΕΡΕΙΑ';
+        return 'Άγνωστη Περιφέρεια';
     }
 
     /**
@@ -218,11 +218,9 @@ class ChatController
 - Εξηγείς με απλά λόγια, κατάλληλα για μαθητές 15-18 ετών
 
 ΠΡΩΤΟ ΒΗΜΑ - ΥΠΟΧΡΕΩΤΙΚΟ:
-Πριν απαντήσεις σε οποιαδήποτε ερώτηση, διάβασε ΟΛΑ τα 4 αρχεία:
-1. antistixeia.json - Αντιστοιχία δεξιοτήτων με κλάδους
-2. deksiotites.json - Δεξιότητες ανά σχολή, περιοχή, επάγγελμα
-3. hiring_job.json - Προσλήψεις ανά περιοχή, φύλο, επάγγελμα
-4. isozygio.json - Ισοζύγιο απασχόλησης ανά σχολή, κλάδο, έτος
+Πριν απαντήσεις σε οποιαδήποτε ερώτηση, διάβασε ΟΛΑ τα 2 αρχεία:
+1. antistixeia.txt - Δεδομένα για νέες θέσεις και προσλήψεις ανά περιφέρεια, φύλο, κλάδο και επάγγελμα (2019-2024)
+2. deksiotites.txt - Δεδομένα για δεξιότητες ανά σχολή, περιφέρεια και επάγγελμα
 
 ΚΑΝΟΝΕΣ ΑΠΑΝΤΗΣΗΣ:
 1. Χρησιμοποίησε ΜΟΝΟ δεδομένα που ταιριάζουν με τα φίλτρα (Σχολή, Φύλο, Περιφέρεια)
@@ -230,23 +228,30 @@ class ChatController
 3. Παρουσίασε συγκεκριμένους αριθμούς, ποσοστά και επαγγέλματα
 4. Απάντησε σύντομα αλλά περιεκτικά (2-4 προτάσεις)
 5. ΜΗΝ ΒΑΛΕΙΣ ΠΟΤΕ CITATIONS! Καθόλου 【4:11†...】 ή [8:13†...] ή οποιοδήποτε reference!
-6. ΜΗΝ αναφέρεις ονόματα αρχείων (antistixeia.json, deksiotites.json κλπ) ή πηγές
+6. ΜΗΝ αναφέρεις ονόματα αρχείων (antistixeia.txt, deksiotites.txt κλπ) ή πηγές
 7. Γράψε ΜΟΝΟ καθαρό κείμενο χωρίς τεχνικά στοιχεία - σαν να μιλάς face-to-face
 8. Μίλα στα Ελληνικά, φυσικά και φιλικά σαν σύμβουλος καριέρας
 9. Απευθύνσου στο μαθητή με 'εσύ' - κάνε το προσωπικό
 10. Δώσε πρακτικές συμβουλές - τι δεξιότητες να αναπτύξει, τι επαγγέλματα να εξετάσει
 11. Να είσαι ενθαρρυντικός και θετικός - βοηθάς νέους να σχεδιάσουν το μέλλον τους
+12. Χρησιμοποίησε τα 2 αρχεία για να βρεις τις καλύτερες απαντήσεις
+13. Ανέφερε συγκεκριμένα επαγγέλματα, δεξιότητες και τάσεις που ταιριάζουν με τα φίλτρα
+14. Δεν θέλω να χρησιμοποιήσεις τη λέξη 'τομείς' αλλά μόνο 'επαγγέλματα' ή 'κλάδους'
+15. ΣΗΜΑΝΤΙΚΟ: Όταν ο χρήστης ρωτάει για 'νέες θέσεις', να αναφέρεις ΠΑΝΤΑ και τις 'προσλήψεις'
+16. ΣΗΜΑΝΤΙΚΟ: Όταν ο χρήστης ρωτάει για 'προσλήψεις', να αναφέρεις ΠΑΝΤΑ και τις 'νέες θέσεις'
+17. ΣΗΜΑΝΤΙΚΟ: Για όλα τα νούμερα (νέες θέσεις, προσλήψεις), να υπολογίζεις και να παρουσιάζεις:
+    - Τον ΜΕΣΟ ΟΡΟ όλων των ετών (2019-2024)
+    - Την ΜΕΓΑΛΥΤΕΡΗ ΤΙΜΗ από όλα τα έτη (2019-2024)
+    Παράδειγμα: 'Ο μέσος όρος προσλήψεων είναι 150 άτομα ετησίως, με τη μεγαλύτερη τιμή να είναι 200 το 2023.'
 
 ΠΑΡΑΔΕΙΓΜΑΤΑ ΚΑΛΩΝ ΑΠΑΝΤΗΣΕΩΝ:
-- 'Στην περιοχή σου υπάρχουν πολλές ευκαιρίες στον τομέα της πληροφορικής. Συγκεκριμένα, δουλειές σαν προγραμματιστής έχουν αυξηθεί κατά 15% φέτος.'
-- 'Για να δουλέψεις ως τεχνικός, θα χρειαστείς δεξιότητες σε μηχανολογία και ηλεκτρολογία. Υπάρχουν 120 θέσεις εργασίας διαθέσιμες.'
-- 'Τα επαγγέλματα στον τουρισμό είναι δημοφιλή στην περιοχή σου. Θα ήταν καλό να αναπτύξεις ξένες γλώσσες και επικοινωνία.'
+- 'Στην περιοχή σου, οι νέες θέσεις στην πληροφορική είχαν μέσο όρο 120 ετησίως (2019-2024), με μέγιστο 180 το 2022. Οι προσλήψεις έφτασαν κατά μέσο όρο τις 150, με κορύφωση στις 200 το 2023.'
+- 'Για τεχνικό, υπήρχαν κατά μέσο όρο 80 νέες θέσεις το χρόνο, με μέγιστο 110 το 2024. Οι προσλήψεις ήταν 90 κατά μέσο όρο, με κορυφαία χρονιά το 2023 (120 άτομα).'
+- 'Στον τουρισμό, ο μέσος όρος νέων θέσεων ήταν 200 ετησίως (μέγιστο 280 το 2024), ενώ οι προσλήψεις έφτασαν κατά μέσο όρο τις 250 (μέγιστο 320 το 2024).'
 
 ΔΟΜΗ ΑΡΧΕΙΩΝ:
-- antistixeia: [school, skill, occupation, importance, values...]
-- deksiotites: [school, location, occupation, skill, importance]
-- hiring_job: [occupation, region, gender, month, count, pct_diff]
-- isozygio: [school, industry, year, ΓΕΛ_* columns, ΕΠΑΛ_* columns]";
+- antistixeia.txt: Εκπαιδευτικό επίπεδο (ΓΕΛ/ΕΠΑΛ), Περιφέρεια, Φύλο, Κλάδος, Επάγγελμα, και στήλες για κάθε έτος 2019-2024 με 'Νέες Θέσεις' και 'Προσλήψεις', καθώς και 'ΜΟ ΝΕΕΣ ΘΕΣΕΙΣ' και 'ΜΟ ΠΡΟΣΛΗΨΕΙΣ'
+- deksiotites.txt: Σχολή, Περιφέρεια, Φύλο, Επάγγελμα, Δεξιότητα, Σημαντικότητα";
 
             $assistant = $client->assistants()->create([
                 'name' => 'Deksiotites Assistant',
@@ -278,6 +283,32 @@ class ChatController
             $thread = $client->threads()->create([]);
             $threadId = $thread->id;
             $_SESSION[$sessionKey] = $threadId;
+        }
+
+        // Check for active runs and wait/cancel them before adding new message
+        try {
+            $runs = $client->threads()->runs()->list($threadId, ['limit' => 1]);
+            if (!empty($runs->data)) {
+                $lastRun = $runs->data[0];
+                // If there's an active run, cancel it and wait for cancellation
+                if (in_array($lastRun->status, ['queued', 'in_progress', 'requires_action'])) {
+                    $client->threads()->runs()->cancel($threadId, $lastRun->id);
+                    
+                    // Poll until the run is cancelled or completed
+                    $cancelAttempts = 0;
+                    $maxCancelAttempts = 10;
+                    while ($cancelAttempts < $maxCancelAttempts) {
+                        sleep(1);
+                        $runStatus = $client->threads()->runs()->retrieve($threadId, $lastRun->id);
+                        if (in_array($runStatus->status, ['cancelled', 'completed', 'failed', 'expired'])) {
+                            break;
+                        }
+                        $cancelAttempts++;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Continue even if checking/cancelling fails
         }
 
         // Add only the latest user message (last item in conversation history)

@@ -31,10 +31,8 @@ class FileUploadController
 
             // Define the files to upload
             $files = [
-                'antistixeia' => __DIR__ . '/../../resources/csv/antistixeia.json',
-                'deksiotites' => __DIR__ . '/../../resources/csv/deksiotites.json',
-                'hiring_job' => __DIR__ . '/../../resources/csv/hiring_job.json',
-                'isozygio' => __DIR__ . '/../../resources/csv/isozygio.json',
+                'antistixeia' => __DIR__ . '/../../resources/csv/antistixeia.txt',
+                'deksiotites' => __DIR__ . '/../../resources/csv/deksiotites.txt',
             ];
 
             $uploadedFileIds = [];
@@ -44,7 +42,7 @@ class FileUploadController
                 if (!file_exists($path)) {
                     throw new \Exception("File not found: {$name}");
                 }
-
+       
                 $response = $client->files()->upload([
                     'purpose' => 'assistants',
                     'file' => fopen($path, 'r'),

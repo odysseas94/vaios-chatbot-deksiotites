@@ -1,7 +1,7 @@
  {
     "Αττική":"Attica",
     "Στερεά Ελλάδα":"Central Greece",
-    "Κεντρική Μακεδονία":"Central Macedonia",
+    "Κεντρική Μαteκεδονία":"Central Macedonia",
     "Κρήτη":"Crete",
     "Ανατολική Μακεδονία και Θράκη":"Eastern Macedonia and Thrace",
     "Ήπειρος":"Epirus",
@@ -11,8 +11,6 @@
     "Θεσσαλία":"Thessaly",
     "Δυτική Μακεδονία":"West Macedonia",
     "Βόρειο Αιγαίο":"North Aegean",
-    "Δυτική Ελλάδα":"Western Greece",
-    "ΙΟΝΙΩΝ ΝΗΣΩΝ":"Ionian Islands",
-    "ΚΕΝΤΡΙΚΗ ΜΑΚΕΔΟΝΙΑ":"Central Macedonia"
+    "Δυτική Ελλάδα":"Western Greece"
   
 }
