@@ -172,7 +172,7 @@ class ChatController
     }
 
     /**
-     * Call OpenAI API using Chat Completions API with file contents in context
+     * Call OpenAI API with vector store file search using Assistants API
      */
     private function callOpenAI($conversationHistory, $school, $gender, $perifereiasName)
     {
@@ -182,25 +182,26 @@ class ChatController
             throw new \Exception('OpenAI API key not configured');
         }
 
-        // Load data files
-        $antistixeiaPath = __DIR__ . '/../../resources/csv/antistixeia.txt';
-        $deksiotitesPath = __DIR__ . '/../../resources/csv/deksiotites.txt';
-
-        if (!file_exists($antistixeiaPath) || !file_exists($deksiotitesPath)) {
-            throw new \Exception('Data files not found');
+        // Load vector store ID and assistant ID
+        $configPath = __DIR__ . '/../config/openai_files.json';
+        if (!file_exists($configPath)) {
+            throw new \Exception('Files not uploaded. Please upload files at /files first.');
         }
 
-        $antistixeiaData = file_get_contents($antistixeiaPath);
-        $deksiotitesData = file_get_contents($deksiotitesPath);
+        $config = json_decode(file_get_contents($configPath), true);
+        $vectorStoreId = $config['vector_store_id'] ?? null;
+        $assistantId = $config['assistant_id'] ?? null;
+
+        if (!$vectorStoreId) {
+            throw new \Exception('Vector store ID not found');
+        }
 
         $client = OpenAI::client($apiKey);
 
-        // Format filters for instructions
-        $schoolFilter = $school === 'Γενικό' ? 'ΓΕΛ' : $school;
-        $genderFilter = $gender === "Άνδρας" ? "Άνδρες" : "Γυναίκες";
-
-        // Create system message with instructions and data
-        $systemMessage = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
+        // Create assistant only if it doesn't exist
+        if (!$assistantId) {
+            // Create instructions for the assistant
+            $instructions = "Είσαι AI βοηθός επαγγελματικού προσανατολισμού για μαθητές λυκείου που θέλουν να βρουν δουλειά.
 
 Ο ΡΟΛΟΣ ΣΟΥ:
 - Βοηθάς μαθητές να κατανοήσουν τις επαγγελματικές τους ευκαιρίες
