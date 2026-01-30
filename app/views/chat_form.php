@@ -31,7 +31,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 20px;
-            max-width: 90vw;
+            max-width: 60vw;
 
             width: 100%;
         }
@@ -60,6 +60,26 @@
             object-fit: contain;
             margin-bottom: 20px;
         }
+
+        .top-logos-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border: 3px solid #1877f2;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+        }
+
+        .top-logos-container img {
+            max-height: 60px;
+            max-width: 48%;
+            height: auto;
+            object-fit: contain;
+        }
+
         .subtitle {
             color: #666;
             text-align: center;
@@ -164,13 +184,22 @@
                 width: 180px;
                 max-height: 55px;
             }
+
+            .top-logos-container {
+                padding: 5px;
+                gap: 8px;
+            }
+
+            .top-logos-container img {
+                width: 48%;
+            }
         }
 
         @media (max-width: 480px) {
             .container {
                 padding: 20px 15px;
                 
-                width: 70vw;
+                width: 90vw;
             }
 
             .parent-images {
@@ -187,14 +216,26 @@
                 width: 120px;
                 max-height: 40px;
             }
+
+            .top-logos-container {
+                padding: 5px;
+                gap: 5px;
+                border-width: 2px;
+                flex-direction: row;
+            }
+
+            .top-logos-container img {
+                width: 47%;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div style="text-align: center;">
-            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa.jpg" alt="Logo" class="logo-espa">
+        <div class="top-logos-container">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/epitelikh_domh.png" alt="Logo">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa.jpg" alt="Logo">
         </div>
         <h1>Ψηφιακά σημεία πληροφόρησης</h1>
         <p class="subtitle">Επιλέξτε τα κριτήρια φιλτραρίσματος</p>
@@ -242,8 +283,9 @@
             <button type="submit">Συνέχεια στο Chat</button>
         </form>
         <div class="parent-images">
+                            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/eee_group.jpeg" alt="Logo" class="logo">
                <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
-                <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/eee_group.jpeg" alt="Logo" class="logo">
+
 
         </div>
     </div>

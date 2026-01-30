@@ -60,13 +60,13 @@
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
             height: 95vh;
             max-height: 900px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            width: 70vw;
+            width: 80vw;
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -590,47 +590,52 @@
             }
 
             .parent-images {
-                flex-direction: row;
                 gap: 5px;
                 padding: 0 5px;
             }
 
-            .logo {
-                width: 70px;
-                max-height: 35px;
-                margin-bottom: 5px;
+            .parent-images img {
+                height: 35px !important;
+                max-height: 35px !important;
+                max-width: 35%;
             }
 
-            .logo-espa {
-                width: 120px;
-                max-height: 40px;
-                margin-bottom: 5px;
+            .parent-images img:nth-child(3) {
+                margin-left: 5vw;
             }
         }
 
         .parent-images {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-  
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: nowrap;
+            padding: 0 3vw;
+            width: 100%;
+        }
+
+        .parent-images img {
+            height: 60px;
+            max-height: 60px;
+            max-width: 35%;
+            width: auto;
+            object-fit: contain;
         }
 
 
+
+        img.logo-espa {
+            max-width: 55%;
+        }
+
         .logo {
-            width: clamp(150px, 20vw, 170px);
-            height: auto;
-            max-height: 60px;
-            object-fit: contain;
             margin-bottom: 20px;
         }
 
 
 
         .logo-espa {
-            width: clamp(250px, 40vw, 550px);
-            height: auto;
-            max-height: 80px;
-            object-fit: contain;
             margin-bottom: 20px;
         }
     </style>
@@ -642,7 +647,7 @@
             <div class="header-top">
                 <a href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat" class="back-button">← Πίσω</a>
                 <h1>
-             
+
                     Ψηφιακά σημεία πληροφόρησης - ChatBot
                 </h1>
                 <div class="header-buttons">
@@ -686,9 +691,12 @@
 
 
         <div class="parent-images">
-                        <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa.jpg" alt="Logo" class="logo-espa">
-            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
-            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/eee_group.jpeg" alt="Logo" class="logo">
+                    <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa_combined.jpg" alt="Espa" class="logo-espa">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/logo_combined.jpg" alt="Logo" class="logo">
+       
+
+    
+
         </div>
 
     </div>
