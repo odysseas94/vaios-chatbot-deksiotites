@@ -1,9 +1,10 @@
 {
-    "vector_store_id": "vs_69788e6284e48191aca5a9d9bccb73d2",
+    "vector_store_id": "vs_6979c739199c8191a51de845d40dda74",
     "file_ids": {
-        "antistixeia": "file-3dqMbB4HThxLFpSvjKK2Sg",
-        "deksiotites": "file-VXUdQawdh519TPEYGHU6yq"
+        "antistixeia": "file-U12vBMonU9o9D57q8YRk9Q",
+        "deksiotites": "file-M8PuMG5TuhbefH1iZJuNVn",
+        "job-association": "file-QMCw8X6uRmV1HY4yxGUx7E"
     },
-    "uploaded_at": "2026-01-27 12:07:31",
-    "assistant_id": "asst_KPkTURDObQGxDZQsJmqZxXTV"
+    "uploaded_at": "2026-01-28 10:22:18",
+    "assistant_id": "asst_Pmf4c6dmtJBNd2c1RcPwAJQs"
 }

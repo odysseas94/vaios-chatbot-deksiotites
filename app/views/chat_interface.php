@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="el">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +36,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 50%, rgba(24, 119, 242, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(24, 119, 242, 0.02) 0%, transparent 50%),
                 radial-gradient(circle at 40% 20%, rgba(0, 0, 0, 0.015) 0%, transparent 50%);
@@ -44,8 +45,13 @@
         }
 
         @keyframes drift {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
         }
 
         .chat-container {
@@ -60,6 +66,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            width: 70vw;
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -67,7 +74,7 @@
         .chat-header {
             background: linear-gradient(135deg, #1877f2 0%, #0e5fc4 100%);
             color: white;
-            padding: 20px 30px;
+            padding: 16px 30px;
             border-bottom: none;
             position: relative;
             z-index: 10;
@@ -78,7 +85,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .chat-header h1 {
@@ -94,13 +101,6 @@
             flex-wrap: wrap;
         }
 
-        .logo {
-            height: auto;
-            width: clamp(120px, 20vw, 180px);
-            max-height: 40px;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-        }
 
         .filter-info {
             font-size: clamp(11px, 2vw, 13px);
@@ -159,6 +159,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -191,7 +192,9 @@
             border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
-        .message-bubble h1, .message-bubble h2, .message-bubble h3 {
+        .message-bubble h1,
+        .message-bubble h2,
+        .message-bubble h3 {
             margin-top: 12px;
             margin-bottom: 8px;
             color: #1877f2;
@@ -209,7 +212,8 @@
             font-size: clamp(14px, 2vw, 16px);
         }
 
-        .message-bubble ul, .message-bubble ol {
+        .message-bubble ul,
+        .message-bubble ol {
             margin: 10px 0;
             padding-left: 20px;
         }
@@ -272,7 +276,8 @@
             font-size: clamp(11px, 2vw, 13px);
         }
 
-        .message-bubble th, .message-bubble td {
+        .message-bubble th,
+        .message-bubble td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
@@ -321,9 +326,13 @@
         }
 
         @keyframes bounce {
-            0%, 80%, 100% {
+
+            0%,
+            80%,
+            100% {
                 transform: scale(0);
             }
+
             40% {
                 transform: scale(1);
             }
@@ -430,12 +439,13 @@
 
         .header-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-end;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
         }
 
-        #clearHistoryBtn, #showQuestionsBtn {
+        #clearHistoryBtn,
+        #showQuestionsBtn {
             padding: clamp(8px, 1.5vw, 10px) clamp(14px, 2vw, 18px);
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -451,13 +461,15 @@
             backdrop-filter: blur(10px);
         }
 
-        #clearHistoryBtn:hover, #showQuestionsBtn:hover {
+        #clearHistoryBtn:hover,
+        #showQuestionsBtn:hover {
             background: rgba(255, 255, 255, 0.35);
             transform: translateY(-1px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        #clearHistoryBtn:active, #showQuestionsBtn:active {
+        #clearHistoryBtn:active,
+        #showQuestionsBtn:active {
             transform: translateY(0);
         }
 
@@ -526,6 +538,7 @@
             .chat-container {
                 height: 98vh;
                 border-radius: 16px;
+                width: 100%;
             }
 
             .chat-header {
@@ -548,6 +561,7 @@
             }
 
             .header-buttons {
+                flex-direction: column;
                 align-items: center;
             }
 
@@ -574,17 +588,62 @@
             .message-bubble {
                 max-width: 90%;
             }
+
+            .parent-images {
+                flex-direction: row;
+                gap: 5px;
+                padding: 0 5px;
+            }
+
+            .logo {
+                width: 70px;
+                max-height: 35px;
+                margin-bottom: 5px;
+            }
+
+            .logo-espa {
+                width: 120px;
+                max-height: 40px;
+                margin-bottom: 5px;
+            }
+        }
+
+        .parent-images {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+  
+        }
+
+
+        .logo {
+            width: clamp(150px, 20vw, 170px);
+            height: auto;
+            max-height: 60px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+
+
+        .logo-espa {
+            width: clamp(250px, 40vw, 550px);
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+            margin-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-top">
                 <a href="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat" class="back-button">← Πίσω</a>
                 <h1>
-                    <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
-                Ψηφιακά σημεία πληροφόρησης - ChatBot
+             
+                    Ψηφιακά σημεία πληροφόρησης - ChatBot
                 </h1>
                 <div class="header-buttons">
                     <button id="clearHistoryBtn">
@@ -616,15 +675,23 @@
 
         <div class="chat-input-container">
             <div class="chat-input-wrapper">
-                <input 
-                    type="text" 
-                    id="messageInput" 
+                <input
+                    type="text"
+                    id="messageInput"
                     placeholder="Γράψε το μήνυμά σου εδώ..."
-                    autocomplete="off"
-                >
+                    autocomplete="off">
                 <button id="sendButton">Αποστολή</button>
             </div>
         </div>
+
+
+        <div class="parent-images">
+                        <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa.jpg" alt="Logo" class="logo-espa">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/eee_group.jpeg" alt="Logo" class="logo">
+        </div>
+
+    </div>
     </div>
 
     <script>
@@ -643,10 +710,10 @@
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            
+
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            
+
             if (isUser) {
                 // User messages are plain text
                 bubbleDiv.textContent = content;
@@ -654,12 +721,12 @@
                 // Bot messages are markdown, parse and render as HTML
                 bubbleDiv.innerHTML = marked.parse(content);
             }
-            
+
             messageDiv.appendChild(bubbleDiv);
-            
+
             // Insert before typing indicator
             chatMessages.insertBefore(messageDiv, typingIndicator);
-            
+
             // Scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -683,7 +750,7 @@
 
         async function sendMessage() {
             const message = messageInput.value.trim();
-            
+
             if (!message) return;
 
             // Remove welcome section if it exists
@@ -694,12 +761,15 @@
 
             // Add user message to chat
             addMessage(message, true);
-            
+
             // Update conversation history with user message
-            conversationHistory.push({ role: 'user', content: message });
-            
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
             messageInput.value = '';
-            
+
             // Disable input while processing
             sendButton.disabled = true;
             messageInput.disabled = true;
@@ -727,15 +797,18 @@
 
                 hideTyping();
                 addMessage(data.response, false);
-                
+
                 // Update conversation history with assistant response
-                conversationHistory.push({ role: 'assistant', content: data.response });
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: data.response
+                });
 
             } catch (error) {
                 hideTyping();
                 showError('Σφάλμα: ' + error.message);
                 console.error('Error:', error);
-                
+
                 // Remove the user message from history since it failed
                 conversationHistory.pop();
             } finally {
@@ -749,16 +822,16 @@
         function loadConversationHistory() {
             // Format school name properly
             const schoolName = school === 'Γενικό' ? 'Γενικού Λυκείου' : 'Επαγγελματικού (ΕΠΑΛ) Λυκείου';
-            
+
             // Format gender properly
             const genderFormatted = gender === 'Άνδρας' ? 'Άντρες' : 'Γυναίκες';
-            
+
             // Format perifereia - capitalize first letter of each word
-            const perifereiasFormatted = "<?=   $perifereiasName ?>";
-            
+            const perifereiasFormatted = "<?= $perifereiasName ?>";
+
             // Always show welcome message first
             addMessage(`Γεια σου! Είμαι ο βοηθός σου για ερωτήσεις σχετικά με δεξιότητες και απασχόληση αποφοίτων. Μπορείς να με ρωτήσεις οτιδήποτε για αποφοίτους ${schoolName}, ${genderFormatted}, στην Περιφέρεια ${perifereiasFormatted}.`, false);
-            
+
             // Show sample questions only if no conversation history
             if (conversationHistory.length === 0) {
                 showSampleQuestions();
@@ -768,7 +841,7 @@
                     addMessage(msg.content, msg.role === 'user');
                 });
             }
-            
+
             // Scroll to bottom after loading
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -783,23 +856,23 @@
             const welcomeSection = document.createElement('div');
             welcomeSection.className = 'welcome-section';
             welcomeSection.id = 'welcomeSection';
-            
+
             const allSampleQuestions = [
                 'Ποια επαγγέλματα είναι δημοφιλή στην περιοχή μου;',
                 'Τι δεξιότητες χρειάζομαι για να δουλέψω σε γραφείο;',
                 'Ποιοι κλάδοι έχουν περισσότερες προσλήψεις;',
                 'Τι δεξιότητες αναζητούν οι εργοδότες στην περιοχή μου;'
             ];
-            
+
             // Filter out questions that have already been asked
             const askedQuestions = conversationHistory
                 .filter(msg => msg.role === 'user')
                 .map(msg => msg.content.trim());
-            
-            const availableQuestions = allSampleQuestions.filter(q => 
+
+            const availableQuestions = allSampleQuestions.filter(q =>
                 !askedQuestions.includes(q.trim())
             );
-            
+
             // If no questions are available, show a message
             if (availableQuestions.length === 0) {
                 welcomeSection.innerHTML = `
@@ -816,30 +889,33 @@
                     </div>
                 `;
             }
-            
+
             chatMessages.insertBefore(welcomeSection, typingIndicator);
-            
+
             // Add click event listeners to sample questions
             document.querySelectorAll('.sample-question').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const question = this.getAttribute('data-question');
                     messageInput.value = question;
-                    
+
                     // Remove welcome section
                     document.getElementById('welcomeSection').remove();
-                    
+
                     // Send the message
                     sendMessage();
                 });
             });
 
             // Scroll to show the questions
-            welcomeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            welcomeSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
         }
 
         // Event listeners
         sendButton.addEventListener('click', sendMessage);
-        
+
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendMessage();
@@ -880,4 +956,5 @@
         messageInput.focus();
     </script>
 </body>
+
 </html>

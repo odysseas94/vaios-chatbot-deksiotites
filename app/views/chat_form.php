@@ -23,15 +23,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+        
         }
 
         .container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 700px;
+            padding: 20px;
+            max-width: 90vw;
+
             width: 100%;
         }
 
@@ -43,13 +44,22 @@
         }
 
         .logo {
-            width: clamp(150px, 30vw, 250px);
+            width: clamp(150px, 20vw, 170px);
+            height: auto;
+            max-height: 60px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+
+
+        .logo-espa {
+            width: clamp(250px, 40vw, 550px);
             height: auto;
             max-height: 80px;
             object-fit: contain;
             margin-bottom: 20px;
         }
-
         .subtitle {
             color: #666;
             text-align: center;
@@ -127,19 +137,70 @@
             font-size: 13px;
             color: #1976d2;
         }
+        .parent-images {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+  
+                width: 90vw;
+            }
+
+            .parent-images {
+                gap: 10px;
+            }
+
+            .logo {
+                width: 100px;
+                max-height: 45px;
+            }
+
+            .logo-espa {
+                width: 180px;
+                max-height: 55px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+                
+                width: 70vw;
+            }
+
+            .parent-images {
+                gap: 5px;
+                padding: 0 5px;
+            }
+
+            .logo {
+                width: 70px;
+                max-height: 35px;
+            }
+
+            .logo-espa {
+                width: 120px;
+                max-height: 40px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <div style="text-align: center;">
-            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+            <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/espa.jpg" alt="Logo" class="logo-espa">
         </div>
         <h1>Ψηφιακά σημεία πληροφόρησης</h1>
         <p class="subtitle">Επιλέξτε τα κριτήρια φιλτραρίσματος</p>
 
         <div class="info-box">
-            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο και την περιφέρεια για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
+            ℹ️ Επιλέξτε τον τύπο σχολείου, το φύλο και την Περιφέρεια για να φιλτράρετε τα δεδομένα δεξιοτήτων πριν ξεκινήσετε τη συνομιλία με το chatbot.
         </div>
 
         <form method="GET" action="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/chat/interface" id="filterForm">
@@ -180,6 +241,11 @@
 
             <button type="submit">Συνέχεια στο Chat</button>
         </form>
+        <div class="parent-images">
+               <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/d2a.png" alt="Logo" class="logo">
+                <img src="<?php echo htmlspecialchars($baseUrl ?? ''); ?>/images/eee_group.jpeg" alt="Logo" class="logo">
+
+        </div>
     </div>
 
     <script>

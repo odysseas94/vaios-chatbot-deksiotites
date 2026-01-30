@@ -33,6 +33,7 @@ class FileUploadController
             $files = [
                 'antistixeia' => __DIR__ . '/../../resources/csv/antistixeia.txt',
                 'deksiotites' => __DIR__ . '/../../resources/csv/deksiotites.txt',
+                'job-association' => __DIR__ . '/../../resources/csv/job-association.txt',
             ];
 
             $uploadedFileIds = [];
